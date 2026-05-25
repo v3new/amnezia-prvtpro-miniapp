@@ -1,0 +1,8 @@
+bun.lockb.bak
+node_modules
+client/dist
+*.log
+.DS_Store
+.env.local
+.env
+.claude

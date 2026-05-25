@@ -1,0 +1,127 @@
+{
+  "common": {
+    "back": "← Назад",
+    "retry": "Повторить",
+    "tryAgain": "Попробовать ещё раз",
+    "loading": "Загрузка…",
+    "working": "Применяем…",
+    "deleting": "Удаляем…",
+    "creating": "Создаём подключение…",
+    "noConnection": "Нет связи, попробуй ещё раз",
+    "writeAdmin": "Написать админу",
+    "internalError": "Внутренняя ошибка",
+    "online": "онлайн",
+    "copied": "Скопировано",
+    "downloaded": "Файл сохранён",
+    "downloadStarted": "Скачивание начато",
+    "openingBrowser": "Открываю в браузере",
+    "downloadFailed": "Не удалось скачать файл"
+  },
+  "auth": {
+    "noTelegram": "Открой кабинет через Telegram",
+    "userNotProvisioned": "Доступ не настроен. Напиши администратору."
+  },
+  "greeting": {
+    "morning": "Доброе утро, {{name}} 👋",
+    "day": "Добрый день, {{name}} 👋",
+    "evening": "Добрый вечер, {{name}} 👋",
+    "night": "Доброй ночи, {{name}} 👋"
+  },
+  "home": {
+    "traffic": "Трафик",
+    "usedOfLimit": "Использовано: <b>{{used}}</b> / {{limit}}",
+    "usedNoLimit": "Использовано: <b>{{used}}</b>",
+    "noReset": "Без сброса",
+    "resetOn": "Сбросится: {{date}} (через {{days}} дн.)",
+    "subscriptionUntil": "Подписка до {{date}}",
+    "serverOnline": "Сервер онлайн, пинг {{ping}} мс",
+    "serverOnlineNoPing": "Сервер онлайн",
+    "serverWaiting": "Ждём ответа от сервера…",
+    "connections": "Подключения {{current}}/{{max}}",
+    "empty": "Нет подключений. Создай первое — кнопка ниже",
+    "newConnection": "Новое подключение",
+    "admin": "Есть вопрос?",
+    "donate": "На сервер",
+    "limitExceededOpen": "Лимит трафика исчерпан — открой"
+  },
+  "wizard": {
+    "stepDevice": "Устройство",
+    "stepOs": "Операционная система",
+    "stepProtocol": "Протокол",
+    "stepName": "Название",
+    "change": "Изменить",
+    "namePlaceholder": "Название устройства",
+    "create": "Создать подключение",
+    "creating": "Создаём…",
+    "recommended": "рекомендуется",
+    "form": {
+      "phone": "Телефон",
+      "computer": "Компьютер",
+      "tv": "Телевизор",
+      "tablet": "Планшет",
+      "router": "Роутер",
+      "other": "Другое"
+    },
+    "protoDesc": {
+      "awg2": "WireGuard с маскировкой. Хороший баланс скорости и устойчивости к блокировкам",
+      "wireguard": "Классический WireGuard. Самый быстрый и простой, но в жёстких сетях блокируется",
+      "xray": "Маскируется под обычный TLS-трафик. Самый устойчивый к блокировкам, чуть медленнее WireGuard"
+    }
+  },
+  "detail": {
+    "tabQr": "QR",
+    "tabLink": "Ссылка",
+    "tabConfig": "Конфиг",
+    "copy": "Скопировать",
+    "download": "💾 Скачать",
+    "howTo": "Как настроить?",
+    "delete": "Удалить подключение",
+    "confirmDelete": "Удалить подключение?",
+    "loadFailed": "Не удалось загрузить",
+    "offline": "Сейчас не в сети",
+    "neverConnected": "",
+    "trafficIn": "Скачано",
+    "trafficOut": "Загружено"
+  },
+  "time": {
+    "justNow": "только что",
+    "minuteAgo": "{{n}} мин назад",
+    "hourAgo": "{{n}} ч назад",
+    "dayAgo": "{{n}} д назад"
+  },
+  "limit": {
+    "title": "Лимит трафика исчерпан",
+    "willReset": "Сбросится {{date}}"
+  },
+  "instructions": {
+    "title": "Инструкции",
+    "pickProtocol": "Выбери протокол",
+    "pickDevice": "Выбери устройство",
+    "previewNote": "Здесь только текст. Чтобы получить настоящий QR/ссылку/конфиг — создай подключение на главной"
+  },
+  "instructionsBlock": {
+    "recommendedApp": "Рекомендованное приложение",
+    "install": "Установить",
+    "alternatives": "Другие приложения",
+    "noEntry": "Для этой связки протокол + устройство инструкции пока не готовы. Напиши админу.",
+    "unsupportedTitle": "Эта связка не поддерживается",
+    "useFallback": "Создать вместо этого {{protocol}}",
+    "unverified": "Этот сценарий ({{device}}) мы пока не тестировали вживую. Если что-то пойдёт не так — напиши админу, обновим инструкцию",
+    "openInApp": "Открыть в {{app}}",
+    "orCopyLink": "или скопировать ссылку",
+    "copyLink": "Скопировать ссылку",
+    "downloadConf": "Скачать .conf",
+    "downloadVpn": "Скачать .vpn",
+    "copyLinkShort": "Ссылку",
+    "copyConfigShort": "Конфиг",
+    "fallbackTitle": "Запасной вариант",
+    "fallbackHint": "Если основной путь не сработал — скопируй ссылку или конфиг вручную и вставь в приложение"
+  },
+  "openCabinet": "Запустить",
+  "loader": {
+    "taglineLead": "У свободного интернета",
+    "taglineAccent": "есть имя",
+    "stillWorking": "Ещё работаем…",
+    "slowConnection": "Медленное соединение"
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "common": {
+    "back": "← Back",
+    "retry": "Retry",
+    "tryAgain": "Try again",
+    "loading": "Loading…",
+    "working": "Working…",
+    "deleting": "Deleting…",
+    "creating": "Creating connection…",
+    "noConnection": "Connection lost, try again",
+    "writeAdmin": "Message admin",
+    "internalError": "Internal error",
+    "online": "online",
+    "copied": "Copied",
+    "downloaded": "File saved",
+    "downloadStarted": "Download started",
+    "openingBrowser": "Opening in browser",
+    "downloadFailed": "Failed to download file"
+  },
+  "auth": {
+    "noTelegram": "Open the cabinet via Telegram.",
+    "userNotProvisioned": "Access is not provisioned. Message the admin."
+  },
+  "greeting": {
+    "morning": "Good morning, {{name}} 👋",
+    "day": "Good afternoon, {{name}} 👋",
+    "evening": "Good evening, {{name}} 👋",
+    "night": "Good night, {{name}} 👋"
+  },
+  "home": {
+    "traffic": "Traffic",
+    "usedOfLimit": "Used: <b>{{used}}</b> / {{limit}}",
+    "usedNoLimit": "Used: <b>{{used}}</b>",
+    "noReset": "No reset",
+    "resetOn": "Resets: {{date}} (in {{days}}d)",
+    "subscriptionUntil": "Subscription until {{date}}",
+    "serverOnline": "Server online, ping {{ping}} ms",
+    "serverOnlineNoPing": "Server online",
+    "serverWaiting": "Waiting for server response…",
+    "connections": "Connections {{current}}/{{max}}",
+    "empty": "No connections yet. Tap the button below to create one.",
+    "newConnection": "New connection",
+    "admin": "Got a question",
+    "donate": "Chip in",
+    "limitExceededOpen": "Traffic limit reached — tap to open"
+  },
+  "wizard": {
+    "stepDevice": "Device",
+    "stepOs": "Operating system",
+    "stepProtocol": "Protocol",
+    "stepName": "Name",
+    "change": "Change",
+    "namePlaceholder": "Device name",
+    "create": "Create connection",
+    "creating": "Creating…",
+    "recommended": "recommended",
+    "form": {
+      "phone": "Phone",
+      "computer": "Computer",
+      "tv": "TV",
+      "tablet": "Tablet",
+      "router": "Router",
+      "other": "Other"
+    },
+    "protoDesc": {
+      "awg2": "WireGuard with obfuscation. Good balance of speed and stealth.",
+      "wireguard": "Plain WireGuard. Fastest and simplest, but blocked in stricter networks.",
+      "xray": "Disguised as regular TLS traffic. Most resistant to blocks, slightly slower than WireGuard."
+    }
+  },
+  "detail": {
+    "tabQr": "QR",
+    "tabLink": "Link",
+    "tabConfig": "Config",
+    "copy": "Copy",
+    "download": "Download",
+    "howTo": "How to set up?",
+    "delete": "Delete connection",
+    "confirmDelete": "Delete connection?",
+    "loadFailed": "Could not load",
+    "offline": "Currently offline",
+    "neverConnected": "",
+    "trafficIn": "Downloaded",
+    "trafficOut": "Uploaded"
+  },
+  "time": {
+    "justNow": "just now",
+    "minuteAgo": "{{n}}m ago",
+    "hourAgo": "{{n}}h ago",
+    "dayAgo": "{{n}}d ago"
+  },
+  "limit": {
+    "title": "Traffic limit reached",
+    "willReset": "Resets {{date}}"
+  },
+  "instructions": {
+    "title": "Guide",
+    "pickProtocol": "Pick a protocol",
+    "pickDevice": "Pick a device",
+    "previewNote": "This is just the text. To get a real QR / link / config — create a connection from the home screen."
+  },
+  "instructionsBlock": {
+    "recommendedApp": "Recommended app",
+    "install": "Install",
+    "alternatives": "Other apps",
+    "noEntry": "We don't have instructions for this protocol + device combo yet. Message the admin.",
+    "unsupportedTitle": "This combo isn't supported",
+    "useFallback": "Use {{protocol}} instead",
+    "unverified": "We haven't tested the {{device}} flow live yet. If something feels off — ping the admin and we'll refine it.",
+    "openInApp": "Open in {{app}}",
+    "orCopyLink": "or copy the link",
+    "copyLink": "Copy link",
+    "downloadConf": "Download .conf",
+    "downloadVpn": "Download .vpn",
+    "copyLinkShort": "Link",
+    "copyConfigShort": "Config",
+    "fallbackTitle": "Fallback options",
+    "fallbackHint": "If the main flow didn't work — copy the link or config manually and paste it into the app."
+  },
+  "openCabinet": "Open cabinet",
+  "loader": {
+    "taglineLead": "Internet freedom",
+    "taglineAccent": "has a name",
+    "stillWorking": "Still working…",
+    "slowConnection": "Slow connection"
+  }
+}

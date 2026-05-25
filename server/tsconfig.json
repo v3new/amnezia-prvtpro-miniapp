@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["bun"],
+    "lib": ["ES2022"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "rootDir": "./src",
+    "baseUrl": "./src"
+  },
+  "include": ["src/**/*.ts"]
+}

@@ -1,0 +1,280 @@
+/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind directive processed by PostCSS. */
+@tailwind base;
+/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind directive processed by PostCSS. */
+@tailwind components;
+/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind directive processed by PostCSS. */
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100vh;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Inline loader ---------- */
+
+.inline-loader {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  color: inherit;
+}
+
+.inline-loader__box {
+  position: relative;
+  flex-shrink: 0;
+  display: block;
+}
+
+.inline-loader__svg-wrap {
+  position: absolute;
+  inset: 0;
+}
+
+.inline-loader__svg-wrap svg.inline-loader__svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  display: block;
+}
+
+.inline-loader__panel {
+  transform-box: fill-box;
+  transform-origin: center;
+  will-change: transform, opacity;
+  animation: inline-cycle 1800ms infinite;
+  animation-delay: var(--panel-stagger, 0ms);
+}
+
+@keyframes inline-cycle {
+  0% {
+    transform: translate(var(--sx, 0), var(--sy, 0)) rotate(var(--sr, 0));
+    opacity: 0.3;
+    animation-timing-function: ease-out;
+  }
+  11% {
+    transform: translate(var(--sx, 0), var(--sy, 0)) rotate(var(--sr, 0));
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  39% {
+    transform: translate(0, 0) rotate(0);
+    opacity: 1;
+    animation-timing-function: linear;
+  }
+  53% {
+    transform: translate(0, 0) rotate(0);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+  }
+  89% {
+    transform: translate(var(--ex, 0), var(--ey, 0)) rotate(var(--er, 0));
+    opacity: 0.3;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  100% {
+    transform: translate(var(--sx, 0), var(--sy, 0)) rotate(var(--sr, 0));
+    opacity: 0.3;
+  }
+}
+
+/* Subtle seam flash on the lock beat */
+.inline-loader__box::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.35) 0%, transparent 60%);
+  opacity: 0;
+  pointer-events: none;
+  animation: inline-flash 1800ms infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes inline-flash {
+  0%,
+  35%,
+  60%,
+  100% {
+    opacity: 0;
+  }
+  44% {
+    opacity: 0.55;
+  }
+}
+
+/* Success: stop cycle, snap to A, then draw checkmark */
+.inline-loader--success .inline-loader__panel,
+.inline-loader--success .inline-loader__box::after {
+  animation: none;
+}
+
+.inline-loader--success .inline-loader__panel {
+  animation: inline-success-snap 280ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes inline-success-snap {
+  to {
+    transform: translate(0, 0) rotate(0);
+    opacity: 1;
+  }
+}
+
+.inline-loader--success .inline-loader__svg-wrap {
+  animation: inline-fade-collapse 380ms cubic-bezier(0.55, 0, 0.45, 1) 720ms forwards;
+}
+
+@keyframes inline-fade-collapse {
+  to {
+    opacity: 0;
+    transform: scale(0.78);
+  }
+}
+
+.inline-loader__check {
+  position: absolute;
+  inset: 12%;
+  width: 76%;
+  height: 76%;
+  color: #2ec97d;
+  opacity: 0;
+  animation: inline-check-fade 220ms ease-out 720ms forwards;
+}
+
+.inline-loader__check path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: inline-check-stroke 360ms cubic-bezier(0.22, 1, 0.36, 1) 820ms forwards;
+}
+
+@keyframes inline-check-fade {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes inline-check-stroke {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Error: shake, desaturate, drop a shard */
+.inline-loader--error .inline-loader__box::after {
+  animation: none;
+}
+
+.inline-loader--error .inline-loader__box {
+  animation: inline-shake 320ms ease-in-out;
+}
+
+@keyframes inline-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-2px);
+  }
+  40% {
+    transform: translateX(2px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+.inline-loader--error .inline-loader__svg-wrap {
+  animation: inline-desaturate 220ms ease-out 160ms forwards;
+}
+
+@keyframes inline-desaturate {
+  to {
+    filter: saturate(0);
+  }
+}
+
+.inline-loader--error .inline-loader__panel {
+  animation: inline-error-settle 320ms ease-out forwards;
+}
+
+@keyframes inline-error-settle {
+  to {
+    transform: translate(0, 0) rotate(0);
+    opacity: 0.6;
+  }
+}
+
+.inline-loader--error .inline-loader__panel--falling {
+  animation: inline-shard-fall 520ms cubic-bezier(0.55, 0, 0.85, 0.4) 220ms forwards;
+}
+
+@keyframes inline-shard-fall {
+  to {
+    transform: translate(0, 60px) rotate(35deg);
+    opacity: 0;
+  }
+}
+
+/* Hint text */
+.inline-loader__hint {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  opacity: 0.55;
+  text-align: center;
+  white-space: nowrap;
+  animation: inline-hint-fade 260ms ease-out;
+  pointer-events: none;
+}
+
+@keyframes inline-hint-fade {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 4px);
+  }
+  to {
+    opacity: 0.55;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inline-loader__panel,
+  .inline-loader__box::after,
+  .inline-loader__svg-wrap,
+  .inline-loader__check,
+  .inline-loader__check path,
+  .inline-loader__box {
+    animation: none;
+  }
+  .inline-loader__panel {
+    transform: none;
+    opacity: 0.55;
+    animation: inline-breathe 1500ms ease-in-out infinite;
+  }
+  @keyframes inline-breathe {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+}

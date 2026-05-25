@@ -1,0 +1,1058 @@
+{
+  "$schema_version": 2,
+  "_notes": "Каждая запись — это [protocol_slug][device_slug]. protocol_slug совпадает со slug панели/визарда (awg2, wireguard, xray). flow.id ∈ {qr, deeplink, link_paste, config_file, router_manual}. verified=false помечает связки, где UX не подтверждён живым тестом",
+  "awg2": {
+    "iphone": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "AmneziaWG",
+        "store_url": "https://apps.apple.com/app/amneziawg/id6478942365",
+        "store_label": "App Store",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://apps.apple.com/app/amnezia-vpn/id1600529900"
+        }
+      ],
+      "default_flow": "qr",
+      "flows": [
+        {
+          "id": "qr",
+          "title": "Сканировать QR",
+          "steps": [
+            "Установи AmneziaWG из App Store по кнопке выше",
+            "Открой это окно ещё раз — но уже на компьютере или планшете, чтобы QR-код был перед глазами",
+            "На iPhone в приложении AmneziaWG нажми «+» → «Создать из QR-кода»",
+            "Наведи камеру iPhone на QR-код. Подключение появится в списке",
+            "Подтверди добавление VPN-профиля в Настройках iOS и включи переключатель"
+          ]
+        },
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Установи AmneziaWG из App Store по кнопке выше",
+            "Нажми «Скопировать ссылку» ниже",
+            "Открой AmneziaWG → «+» → «Создать из буфера обмена»"
+          ]
+        }
+      ]
+    },
+    "ipad": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "AmneziaWG",
+        "store_url": "https://apps.apple.com/app/amneziawg/id6478942365",
+        "store_label": "App Store",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://apps.apple.com/app/amnezia-vpn/id1600529900"
+        }
+      ],
+      "default_flow": "qr",
+      "flows": [
+        {
+          "id": "qr",
+          "title": "Сканировать QR",
+          "steps": [
+            "Установи AmneziaWG из App Store по кнопке выше",
+            "Открой это окно на втором устройстве — телефоне или компьютере",
+            "На iPad в AmneziaWG нажми «+» → «Создать из QR-кода»",
+            "Поднеси камеру iPad ко второму экрану",
+            "Подтверди VPN-профиль в Настройках и включи переключатель"
+          ]
+        },
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Установи AmneziaWG из App Store по кнопке выше",
+            "Нажми «Скопировать ссылку» ниже",
+            "Открой AmneziaWG → «+» → «Создать из буфера обмена»"
+          ]
+        }
+      ]
+    },
+    "android": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "AmneziaWG",
+        "store_url": "https://play.google.com/store/apps/details?id=org.amnezia.awg",
+        "store_label": "Google Play",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://play.google.com/store/apps/details?id=org.amnezia.vpn"
+        },
+        {
+          "name": "WG Tunnel",
+          "store_url": "https://play.google.com/store/apps/details?id=com.zaneschepke.wireguardautotunnel"
+        }
+      ],
+      "default_flow": "qr",
+      "flows": [
+        {
+          "id": "qr",
+          "title": "Сканировать QR",
+          "steps": [
+            "Установи AmneziaWG из Google Play по кнопке выше",
+            "Открой это окно на втором устройстве — компьютере или планшете",
+            "На Android в AmneziaWG нажми «+» → «Сканировать из QR-кода»",
+            "Поднеси камеру ко второму экрану",
+            "Подтверди создание VPN-подключения и включи переключатель"
+          ]
+        },
+        {
+          "id": "deeplink",
+          "title": "Я открыл этот кабинет прямо на телефоне",
+          "steps": [
+            "Установи AmneziaWG из Google Play по кнопке выше",
+            "Вернись сюда и нажми «Открыть в приложении»",
+            "AmneziaWG предложит добавить подключение — соглашайся",
+            "Подтверди создание VPN-подключения и включи переключатель"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "Amnezia VPN",
+        "store_url": "https://amnezia.org/ru/downloads",
+        "store_label": "amnezia.org",
+        "format": "vpn"
+      },
+      "alternative_apps": [
+        {
+          "name": "AmneziaWG",
+          "store_url": "https://apps.apple.com/app/amneziawg/id6478942365"
+        }
+      ],
+      "default_flow": "link_paste",
+      "flows": [
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Скачай Amnezia VPN для macOS по кнопке выше",
+            "Установи и запусти приложение",
+            "Нажми «Скопировать ссылку» ниже",
+            "В Amnezia VPN нажми «+» → вставь ссылку в открывшееся поле → «Insert»",
+            "Включи подключение тумблером"
+          ]
+        },
+        {
+          "id": "config_file",
+          "title": "Через файл .vpn",
+          "steps": [
+            "Скачай и установи Amnezia VPN по кнопке выше",
+            "На этой странице нажми «Скачать конфиг» и сохрани файл",
+            "Открой скачанный .vpn файл двойным щелчком — он импортируется в Amnezia VPN",
+            "Включи подключение тумблером"
+          ]
+        }
+      ]
+    },
+    "windows": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "Amnezia VPN",
+        "store_url": "https://amnezia.org/ru/downloads",
+        "store_label": "amnezia.org",
+        "format": "vpn"
+      },
+      "alternative_apps": [
+        {
+          "name": "AmneziaWG Client",
+          "store_url": "https://github.com/amnezia-vpn/amneziawg-windows-client/releases/latest"
+        }
+      ],
+      "default_flow": "link_paste",
+      "flows": [
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Скачай Amnezia VPN для Windows по кнопке выше",
+            "Установи и запусти приложение",
+            "Нажми «Скопировать ссылку» ниже",
+            "В Amnezia VPN нажми «+» → вставь ссылку в открывшееся поле → «Insert»",
+            "Включи подключение тумблером"
+          ]
+        },
+        {
+          "id": "config_file",
+          "title": "Через файл .vpn",
+          "steps": [
+            "Скачай и установи Amnezia VPN по кнопке выше",
+            "На этой странице нажми «Скачать конфиг» и сохрани файл",
+            "Открой скачанный .vpn файл двойным щелчком — он импортируется в Amnezia VPN",
+            "Включи подключение тумблером"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "amneziawg-tools",
+        "store_url": "https://github.com/amnezia-vpn/amneziawg-tools",
+        "store_label": "GitHub",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://amnezia.org/downloads"
+        }
+      ],
+      "default_flow": "config_file",
+      "flows": [
+        {
+          "id": "config_file",
+          "title": "Через файл конфига и awg-quick",
+          "steps": [
+            "Установи amneziawg-tools из репозитория по кнопке выше (или собери из исходников)",
+            "На этой странице нажми «Скачать .conf»",
+            "Положи файл в /etc/amnezia/amneziawg/awg0.conf (нужны права root)",
+            "Подними интерфейс: sudo awg-quick up awg0",
+            "Чтобы стартовало само при загрузке: sudo systemctl enable awg-quick@awg0"
+          ]
+        }
+      ]
+    },
+    "appletv": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "WG Connect",
+        "store_url": "https://wgconnect.net/",
+        "store_label": "App Store",
+        "format": "conf"
+      },
+      "default_flow": "link_paste",
+      "flows": [
+        {
+          "id": "link_paste",
+          "title": "Перенести ссылку с iPhone",
+          "steps": [
+            "Поставь WG Connect на Apple TV из App Store (поиск по «WG Connect»)",
+            "Открой это окно на своём iPhone и нажми «Скопировать ссылку»",
+            "На Apple TV открой WG Connect → «Add tunnel» → «Paste from clipboard» — он подхватит ссылку из буфера iPhone",
+            "Включи переключатель пультом"
+          ]
+        }
+      ]
+    },
+    "androidtv": {
+      "supported": true,
+      "verified": false,
+      "primary_app": {
+        "name": "WG Tunnel",
+        "store_url": "https://play.google.com/store/apps/details?id=com.zaneschepke.wireguardautotunnel",
+        "store_label": "Google Play",
+        "format": "conf"
+      },
+      "default_flow": "config_file",
+      "flows": [
+        {
+          "id": "config_file",
+          "title": "Перенести файл через Google Drive",
+          "steps": [
+            "Поставь WG Tunnel из Google Play на Android TV",
+            "На телефоне открой это окно и нажми «Скачать .conf». Сохрани файл в Google Drive (или любое облако, к которому ТВ имеет доступ)",
+            "На Android TV открой WG Tunnel → «+» → «Import from file» и выбери файл из Google Drive",
+            "Включи переключатель пультом"
+          ]
+        }
+      ]
+    },
+    "router": {
+      "supported": false,
+      "fallback_protocol": "wireguard",
+      "fallback_reason": "AmneziaWG на роутер обычно не ставится. Создай для роутера соединение по WireGuard — оно подходит"
+    },
+    "android_tablet": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "AmneziaWG",
+        "store_url": "https://play.google.com/store/apps/details?id=org.amnezia.awg",
+        "store_label": "Google Play",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://play.google.com/store/apps/details?id=org.amnezia.vpn"
+        },
+        {
+          "name": "WG Tunnel",
+          "store_url": "https://play.google.com/store/apps/details?id=com.zaneschepke.wireguardautotunnel"
+        }
+      ],
+      "default_flow": "qr",
+      "flows": [
+        {
+          "id": "qr",
+          "title": "Сканировать QR",
+          "steps": [
+            "Установи AmneziaWG из Google Play по кнопке выше",
+            "Открой это окно на втором устройстве — компьютере или телефоне",
+            "На планшете в AmneziaWG нажми «+» → «Сканировать из QR-кода»",
+            "Поднеси камеру планшета ко второму экрану",
+            "Подтверди создание VPN-подключения и включи переключатель"
+          ]
+        },
+        {
+          "id": "deeplink",
+          "title": "Я открыл этот кабинет прямо на планшете",
+          "steps": [
+            "Установи AmneziaWG из Google Play по кнопке выше",
+            "Вернись сюда и нажми «Открыть в приложении»",
+            "AmneziaWG предложит добавить подключение — соглашайся",
+            "Подтверди создание VPN-подключения и включи переключатель"
+          ]
+        }
+      ]
+    },
+    "other": {
+      "supported": true,
+      "verified": false,
+      "primary_app": {
+        "name": "AmneziaWG / Amnezia VPN",
+        "store_url": "https://amnezia.org/downloads",
+        "store_label": "amnezia.org",
+        "format": "conf"
+      },
+      "default_flow": "config_file",
+      "flows": [
+        {
+          "id": "config_file",
+          "title": "Универсальный путь — файл конфига",
+          "steps": [
+            "Скачай клиент AmneziaWG или Amnezia VPN под свою систему с amnezia.org",
+            "На этой странице нажми «Скачать .conf»",
+            "В приложении выбери импорт туннеля из файла и укажи .conf",
+            "Включи подключение"
+          ]
+        }
+      ]
+    }
+  },
+  "wireguard": {
+    "iphone": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "WireGuard",
+        "store_url": "https://apps.apple.com/app/wireguard/id1441195209",
+        "store_label": "App Store",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://apps.apple.com/app/amnezia-vpn/id1600529900"
+        },
+        {
+          "name": "WG Connect",
+          "store_url": "https://wgconnect.net/"
+        }
+      ],
+      "default_flow": "qr",
+      "flows": [
+        {
+          "id": "qr",
+          "title": "Сканировать QR",
+          "steps": [
+            "Установи WireGuard из App Store по кнопке выше",
+            "Открой это окно на втором устройстве, чтобы QR был перед глазами",
+            "На iPhone в WireGuard нажми «+» → «Создать из QR-кода»",
+            "Поднеси камеру ко второму экрану",
+            "Подтверди VPN-профиль в Настройках iOS и включи переключатель"
+          ]
+        }
+      ]
+    },
+    "ipad": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "WireGuard",
+        "store_url": "https://apps.apple.com/app/wireguard/id1441195209",
+        "store_label": "App Store",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://apps.apple.com/app/amnezia-vpn/id1600529900"
+        },
+        {
+          "name": "WG Connect",
+          "store_url": "https://wgconnect.net/"
+        }
+      ],
+      "default_flow": "qr",
+      "flows": [
+        {
+          "id": "qr",
+          "title": "Сканировать QR",
+          "steps": [
+            "Установи WireGuard из App Store по кнопке выше",
+            "Открой это окно на втором устройстве",
+            "На iPad в WireGuard нажми «+» → «Создать из QR-кода»",
+            "Наведи камеру на второй экран",
+            "Подтверди VPN-профиль и включи переключатель"
+          ]
+        }
+      ]
+    },
+    "android": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "WireGuard",
+        "store_url": "https://play.google.com/store/apps/details?id=com.wireguard.android",
+        "store_label": "Google Play",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://play.google.com/store/apps/details?id=org.amnezia.vpn"
+        },
+        {
+          "name": "WG Tunnel",
+          "store_url": "https://play.google.com/store/apps/details?id=com.zaneschepke.wireguardautotunnel"
+        }
+      ],
+      "default_flow": "qr",
+      "flows": [
+        {
+          "id": "qr",
+          "title": "Сканировать QR",
+          "steps": [
+            "Установи WireGuard из Google Play по кнопке выше",
+            "Открой это окно на втором устройстве",
+            "На Android в WireGuard нажми «+» → «Сканировать из QR»",
+            "Поднеси камеру ко второму экрану",
+            "Включи переключатель"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "WireGuard",
+        "store_url": "https://apps.apple.com/app/wireguard/id1451685025",
+        "store_label": "Mac App Store",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://amnezia.org/downloads"
+        }
+      ],
+      "default_flow": "config_file",
+      "flows": [
+        {
+          "id": "config_file",
+          "title": "Через файл конфига",
+          "steps": [
+            "Установи WireGuard из Mac App Store по кнопке выше",
+            "На этой странице нажми «Скачать .conf»",
+            "Открой скачанный файл двойным щелчком — он откроется в WireGuard",
+            "Разреши добавление VPN и переключи тумблер «On»"
+          ]
+        }
+      ]
+    },
+    "windows": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "WireGuard",
+        "store_url": "https://www.wireguard.com/install/",
+        "store_label": "wireguard.com",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://amnezia.org/downloads"
+        }
+      ],
+      "default_flow": "config_file",
+      "flows": [
+        {
+          "id": "config_file",
+          "title": "Через файл конфига",
+          "steps": [
+            "Скачай WireGuard для Windows по кнопке выше и установи",
+            "На этой странице нажми «Скачать .conf»",
+            "В WireGuard нажми «Импорт туннеля(ей) из файла» и выбери скачанный .conf",
+            "Нажми «Активировать»"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "wireguard-tools",
+        "store_url": "https://www.wireguard.com/install/",
+        "store_label": "wireguard.com",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://amnezia.org/downloads"
+        }
+      ],
+      "default_flow": "config_file",
+      "flows": [
+        {
+          "id": "config_file",
+          "title": "Через wg-quick",
+          "steps": [
+            "Установи wireguard-tools пакетом своего дистрибутива (например, sudo apt install wireguard)",
+            "На этой странице нажми «Скачать .conf»",
+            "Положи файл в /etc/wireguard/wg0.conf (нужны права root)",
+            "Подними: sudo wg-quick up wg0",
+            "Автостарт при загрузке: sudo systemctl enable wg-quick@wg0"
+          ]
+        }
+      ]
+    },
+    "appletv": {
+      "supported": true,
+      "verified": false,
+      "primary_app": {
+        "name": "WG Connect",
+        "store_url": "https://wgconnect.net/",
+        "store_label": "App Store",
+        "format": "conf"
+      },
+      "default_flow": "link_paste",
+      "flows": [
+        {
+          "id": "link_paste",
+          "title": "Перенести ссылку с iPhone",
+          "steps": [
+            "Поставь WG Connect на Apple TV из App Store (поиск по «WG Connect»)",
+            "На iPhone открой это окно и нажми «Скопировать ссылку»",
+            "На Apple TV в WG Connect нажми «Add tunnel» → «Paste from clipboard» — он подхватит ссылку из буфера iPhone",
+            "Включи переключатель пультом"
+          ]
+        }
+      ]
+    },
+    "androidtv": {
+      "supported": true,
+      "verified": false,
+      "primary_app": {
+        "name": "WG Tunnel",
+        "store_url": "https://play.google.com/store/apps/details?id=com.zaneschepke.wireguardautotunnel",
+        "store_label": "Google Play",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "WireGuard",
+          "store_url": "https://play.google.com/store/apps/details?id=com.wireguard.android"
+        }
+      ],
+      "default_flow": "config_file",
+      "flows": [
+        {
+          "id": "config_file",
+          "title": "Перенести файл через Google Drive",
+          "steps": [
+            "Поставь WG Tunnel из Google Play на Android TV",
+            "На телефоне открой это окно и нажми «Скачать .conf». Сохрани файл в Google Drive",
+            "На Android TV открой WG Tunnel → «+» → «Import from file» и выбери файл из Google Drive",
+            "Включи переключатель пультом"
+          ]
+        }
+      ]
+    },
+    "android_tablet": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "WireGuard",
+        "store_url": "https://play.google.com/store/apps/details?id=com.wireguard.android",
+        "store_label": "Google Play",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://play.google.com/store/apps/details?id=org.amnezia.vpn"
+        },
+        {
+          "name": "WG Tunnel",
+          "store_url": "https://play.google.com/store/apps/details?id=com.zaneschepke.wireguardautotunnel"
+        }
+      ],
+      "default_flow": "qr",
+      "flows": [
+        {
+          "id": "qr",
+          "title": "Сканировать QR",
+          "steps": [
+            "Установи WireGuard из Google Play по кнопке выше",
+            "Открой это окно на втором устройстве",
+            "На планшете в WireGuard нажми «+» → «Сканировать из QR»",
+            "Поднеси камеру ко второму экрану",
+            "Включи переключатель"
+          ]
+        }
+      ]
+    },
+    "router": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "Встроенный WireGuard в роутере",
+        "store_url": "https://openwrt.org/docs/guide-user/services/vpn/wireguard/client",
+        "store_label": "OpenWrt docs",
+        "format": "conf"
+      },
+      "default_flow": "router_manual",
+      "flows": [
+        {
+          "id": "router_manual",
+          "title": "Перенести поля вручную в админку",
+          "steps": [
+            "Открой админку роутера в браузере. Найди раздел WireGuard, VPN или OpenWrt-пакет wireguard",
+            "На этой странице нажми «Скачать .conf» — там лежат твой PrivateKey, адреса, ключ сервера и его адрес",
+            "Создай новый WireGuard-интерфейс в роутере и аккуратно перенеси значения из .conf в соответствующие поля",
+            "Сохрани и подними интерфейс. Проверь, что роутер показывает «handshake» — значит, всё работает"
+          ]
+        }
+      ]
+    },
+    "other": {
+      "supported": true,
+      "verified": false,
+      "primary_app": {
+        "name": "WireGuard",
+        "store_url": "https://www.wireguard.com/install/",
+        "store_label": "wireguard.com",
+        "format": "conf"
+      },
+      "default_flow": "config_file",
+      "flows": [
+        {
+          "id": "config_file",
+          "title": "Универсальный путь — файл конфига",
+          "steps": [
+            "Поставь клиент WireGuard под свою систему с wireguard.com/install",
+            "На этой странице нажми «Скачать .conf»",
+            "В приложении выбери импорт туннеля из файла и укажи .conf",
+            "Включи подключение"
+          ]
+        }
+      ]
+    }
+  },
+  "xray": {
+    "iphone": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "Happ",
+        "store_url": "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215",
+        "store_label": "App Store"
+      },
+      "alternative_apps": [
+        {
+          "name": "Streisand",
+          "store_url": "https://apps.apple.com/app/streisand/id6450534064"
+        },
+        {
+          "name": "Hiddify",
+          "store_url": "https://apps.apple.com/app/hiddify-proxy-vpn/id6596777532"
+        },
+        {
+          "name": "V2Box",
+          "store_url": "https://apps.apple.com/app/v2box-v2ray-client/id6446814690"
+        }
+      ],
+      "default_flow": "deeplink",
+      "flows": [
+        {
+          "id": "deeplink",
+          "title": "Открыть прямо в Happ",
+          "steps": [
+            "Установи Happ из App Store по кнопке выше",
+            "Вернись сюда и нажми «Открыть в приложении»",
+            "Happ откроется и сам добавит сервер",
+            "Подтверди установку VPN-профиля в Настройках iOS и нажми «Connect»"
+          ]
+        },
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Установи Happ из App Store по кнопке выше",
+            "На устройстве, где открыт кабинет, нажми «Скопировать ссылку»",
+            "Перешли её себе в любой мессенджер и открой на iPhone",
+            "Happ перехватит ссылку и предложит добавить сервер",
+            "Подтверди VPN-профиль и нажми «Connect»"
+          ]
+        }
+      ]
+    },
+    "ipad": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "Happ",
+        "store_url": "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215",
+        "store_label": "App Store"
+      },
+      "alternative_apps": [
+        {
+          "name": "Streisand",
+          "store_url": "https://apps.apple.com/app/streisand/id6450534064"
+        },
+        {
+          "name": "Hiddify",
+          "store_url": "https://apps.apple.com/app/hiddify-proxy-vpn/id6596777532"
+        },
+        {
+          "name": "V2Box",
+          "store_url": "https://apps.apple.com/app/v2box-v2ray-client/id6446814690"
+        }
+      ],
+      "default_flow": "deeplink",
+      "flows": [
+        {
+          "id": "deeplink",
+          "title": "Открыть прямо в Happ",
+          "steps": [
+            "Установи Happ из App Store по кнопке выше",
+            "Вернись сюда и нажми «Открыть в приложении»",
+            "Happ откроется и сам добавит сервер",
+            "Подтверди VPN-профиль и нажми «Connect»"
+          ]
+        },
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Установи Happ из App Store по кнопке выше",
+            "На втором устройстве нажми «Скопировать ссылку» и перешли её себе на iPad",
+            "Открой ссылку — Happ её подхватит",
+            "Подтверди VPN-профиль и нажми «Connect»"
+          ]
+        }
+      ]
+    },
+    "android": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "Happ",
+        "store_url": "https://play.google.com/store/apps/details?id=com.happproxy",
+        "store_label": "Google Play"
+      },
+      "alternative_apps": [
+        {
+          "name": "Happ APK (если Play недоступен)",
+          "store_url": "https://github.com/Happ-proxy/happ-android/releases/latest/download/Happ.apk"
+        },
+        {
+          "name": "v2rayNG",
+          "store_url": "https://github.com/2dust/v2rayNG/releases/latest"
+        },
+        {
+          "name": "Hiddify",
+          "store_url": "https://play.google.com/store/apps/details?id=app.hiddify.com"
+        },
+        {
+          "name": "NekoBox",
+          "store_url": "https://github.com/MatsuriDayo/NekoBoxForAndroid/releases/latest"
+        }
+      ],
+      "default_flow": "deeplink",
+      "flows": [
+        {
+          "id": "deeplink",
+          "title": "Открыть прямо в Happ",
+          "steps": [
+            "Установи Happ из Google Play по кнопке выше. (Если Play недоступен — скачай APK из «Альтернативных приложений».)",
+            "Вернись сюда и нажми «Открыть в приложении»",
+            "Happ откроется и добавит сервер",
+            "Подтверди создание VPN-подключения и нажми «Connect»"
+          ]
+        },
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Установи Happ из Google Play",
+            "На втором устройстве нажми «Скопировать ссылку» и перешли её себе на телефон",
+            "Открой её — Happ подхватит и предложит добавить сервер",
+            "Подтверди VPN и нажми «Connect»"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "Happ",
+        "store_url": "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215",
+        "store_label": "Mac App Store"
+      },
+      "alternative_apps": [
+        {
+          "name": "Happ DMG (вне App Store)",
+          "store_url": "https://github.com/Happ-proxy/happ-desktop/releases/latest/download/Happ.macOS.universal.dmg"
+        },
+        {
+          "name": "Streisand",
+          "store_url": "https://apps.apple.com/app/streisand/id6450534064"
+        },
+        {
+          "name": "Hiddify",
+          "store_url": "https://github.com/hiddify/hiddify-app/releases/latest"
+        }
+      ],
+      "default_flow": "link_paste",
+      "flows": [
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Установи Happ из Mac App Store по кнопке выше",
+            "На этой странице нажми «Скопировать ссылку»",
+            "В Happ нажми «+» → «Paste from clipboard» — он добавит сервер",
+            "Нажми «Connect»"
+          ]
+        }
+      ]
+    },
+    "windows": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "Happ для Windows",
+        "store_url": "https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe",
+        "store_label": "GitHub Releases"
+      },
+      "alternative_apps": [
+        {
+          "name": "v2rayN",
+          "store_url": "https://github.com/2dust/v2rayN/releases/latest"
+        },
+        {
+          "name": "Hiddify",
+          "store_url": "https://github.com/hiddify/hiddify-app/releases/latest"
+        },
+        {
+          "name": "NekoRay",
+          "store_url": "https://github.com/MatsuriDayo/nekoray/releases/latest"
+        }
+      ],
+      "default_flow": "link_paste",
+      "flows": [
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Скачай и установи Happ по кнопке выше",
+            "Открой Happ",
+            "На этой странице нажми «Скопировать ссылку»",
+            "В Happ нажми «+» → «Paste from clipboard» — он добавит сервер",
+            "Нажми «Connect»"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "supported": true,
+      "verified": false,
+      "primary_app": {
+        "name": "Happ для Linux",
+        "store_url": "https://github.com/Happ-proxy/happ-desktop/releases/latest",
+        "store_label": "GitHub Releases"
+      },
+      "alternative_apps": [
+        {
+          "name": "Hiddify",
+          "store_url": "https://github.com/hiddify/hiddify-app/releases/latest"
+        },
+        {
+          "name": "v2rayA",
+          "store_url": "https://github.com/v2rayA/v2rayA/releases/latest"
+        }
+      ],
+      "default_flow": "link_paste",
+      "flows": [
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Скачай пакет Happ под свой дистрибутив (deb / rpm / pkg.tar.zst) по кнопке выше и установи",
+            "Открой Happ",
+            "На этой странице нажми «Скопировать ссылку»",
+            "В Happ нажми «+» → «Paste from clipboard»",
+            "Нажми «Connect»"
+          ]
+        }
+      ]
+    },
+    "appletv": {
+      "supported": true,
+      "verified": false,
+      "primary_app": {
+        "name": "Happ for TV",
+        "store_url": "https://apps.apple.com/us/app/happ-proxy-utility-for-tv/id6748297274",
+        "store_label": "App Store"
+      },
+      "default_flow": "link_paste",
+      "flows": [
+        {
+          "id": "link_paste",
+          "title": "Перенести ссылку с iPhone",
+          "steps": [
+            "Поставь Happ for TV на Apple TV из App Store",
+            "На своём iPhone открой это окно и нажми «Скопировать ссылку»",
+            "На Apple TV в Happ выбери «Add server». tvOS предложит ввести текст — открой подсказку на iPhone и Happ подхватит ссылку из буфера",
+            "Нажми «Connect» пультом"
+          ]
+        }
+      ]
+    },
+    "androidtv": {
+      "supported": true,
+      "verified": false,
+      "primary_app": {
+        "name": "Happ",
+        "store_url": "https://play.google.com/store/apps/details?id=com.happproxy",
+        "store_label": "Google Play"
+      },
+      "alternative_apps": [
+        {
+          "name": "v2rayNG",
+          "store_url": "https://github.com/2dust/v2rayNG/releases/latest"
+        }
+      ],
+      "default_flow": "link_paste",
+      "flows": [
+        {
+          "id": "link_paste",
+          "title": "Перенести ссылку через мессенджер",
+          "steps": [
+            "Поставь Happ из Google Play на Android TV",
+            "На телефоне нажми «Скопировать ссылку» и отправь её себе в Telegram «Saved Messages»",
+            "На Android TV открой Telegram, найди сообщение и скопируй ссылку. (Или открой эту страницу кабинета прямо в браузере на ТВ и скопируй там.)",
+            "В Happ нажми «+» → «Paste from clipboard», нажми «Connect»"
+          ]
+        }
+      ]
+    },
+    "android_tablet": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "Happ",
+        "store_url": "https://play.google.com/store/apps/details?id=com.happproxy",
+        "store_label": "Google Play"
+      },
+      "alternative_apps": [
+        {
+          "name": "Happ APK (если Play недоступен)",
+          "store_url": "https://github.com/Happ-proxy/happ-android/releases/latest/download/Happ.apk"
+        },
+        {
+          "name": "v2rayNG",
+          "store_url": "https://github.com/2dust/v2rayNG/releases/latest"
+        },
+        {
+          "name": "Hiddify",
+          "store_url": "https://play.google.com/store/apps/details?id=app.hiddify.com"
+        },
+        {
+          "name": "NekoBox",
+          "store_url": "https://github.com/MatsuriDayo/NekoBoxForAndroid/releases/latest"
+        }
+      ],
+      "default_flow": "deeplink",
+      "flows": [
+        {
+          "id": "deeplink",
+          "title": "Открыть прямо в Happ",
+          "steps": [
+            "Установи Happ из Google Play по кнопке выше. (Если Play недоступен — скачай APK из «Альтернативных приложений».)",
+            "Вернись сюда и нажми «Открыть в приложении»",
+            "Happ откроется и добавит сервер",
+            "Подтверди создание VPN-подключения и нажми «Connect»"
+          ]
+        },
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Установи Happ из Google Play",
+            "На втором устройстве нажми «Скопировать ссылку» и перешли её себе на планшет",
+            "Открой её — Happ подхватит и предложит добавить сервер",
+            "Подтверди VPN и нажми «Connect»"
+          ]
+        }
+      ]
+    },
+    "router": {
+      "supported": false,
+      "fallback_protocol": "wireguard",
+      "fallback_reason": "VLESS на роутере мы пока не поддерживаем. Для роутера создай соединение по WireGuard"
+    },
+    "other": {
+      "supported": true,
+      "verified": false,
+      "primary_app": {
+        "name": "Happ",
+        "store_url": "https://happ.su/",
+        "store_label": "happ.su"
+      },
+      "default_flow": "link_paste",
+      "flows": [
+        {
+          "id": "link_paste",
+          "title": "Универсальный путь — ссылка из буфера",
+          "steps": [
+            "Скачай Happ под свою систему с happ.su",
+            "Открой Happ",
+            "На этой странице нажми «Скопировать ссылку»",
+            "В Happ нажми «+» → «Paste from clipboard» и подключайся"
+          ]
+        }
+      ]
+    }
+  }
+}

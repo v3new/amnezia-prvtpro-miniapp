@@ -1,0 +1,289 @@
+html,
+body,
+#root {
+  min-height: 100vh;
+}
+
+body {
+  margin: 0;
+  background: var(--tg-theme-bg-color, #ffffff);
+  color: var(--tg-theme-text-color, #0a0a0a);
+}
+
+.hero-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  background: var(--tg-theme-bg-color, #ffffff);
+  color: var(--tg-theme-text-color, #0a0a0a);
+  overflow: hidden;
+  transition: opacity 420ms ease-out;
+}
+
+.hero-loader--exit {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hero-loader__stage {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-loader__stage::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(circle at center, rgba(241, 137, 40, 0.22) 0%, transparent 55%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 600ms ease-out;
+  filter: blur(20px);
+}
+
+.hero-loader[data-phase="flash"] .hero-loader__stage::after,
+.hero-loader[data-phase="name"] .hero-loader__stage::after,
+.hero-loader[data-phase="hold"] .hero-loader__stage::after,
+.hero-loader[data-phase="exit"] .hero-loader__stage::after {
+  opacity: 1;
+}
+
+.hero-loader__svg-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-loader__svg-wrap svg.hero-loader__svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.5));
+  animation: hero-breathe 4s ease-in-out infinite;
+}
+
+@keyframes hero-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.015);
+  }
+}
+
+.hero-loader__panel {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: translate(var(--dx, 0), var(--dy, 0)) rotate(var(--rot, 0)) scale(0.5);
+  opacity: 0;
+}
+
+.hero-loader[data-phase="noise"] .hero-loader__panel {
+  opacity: 0;
+}
+
+.hero-loader[data-phase="assemble"] .hero-loader__panel,
+.hero-loader[data-phase="flash"] .hero-loader__panel,
+.hero-loader[data-phase="name"] .hero-loader__panel,
+.hero-loader[data-phase="hold"] .hero-loader__panel,
+.hero-loader[data-phase="exit"] .hero-loader__panel {
+  animation: hero-panel-assemble var(--panel-duration, 700ms) cubic-bezier(0.22, 1, 0.36, 1) var(--panel-delay, 0ms)
+    forwards;
+}
+
+@keyframes hero-panel-assemble {
+  0% {
+    transform: translate(var(--dx, 0), var(--dy, 0)) rotate(var(--rot, 0)) scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.hero-loader__noise {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.95;
+}
+
+.hero-loader[data-phase="assemble"] .hero-loader__noise {
+  animation: hero-noise-fade 700ms ease-out forwards;
+}
+
+.hero-loader[data-phase="flash"] .hero-loader__noise,
+.hero-loader[data-phase="name"] .hero-loader__noise,
+.hero-loader[data-phase="hold"] .hero-loader__noise,
+.hero-loader[data-phase="exit"] .hero-loader__noise {
+  opacity: 0;
+}
+
+@keyframes hero-noise-fade {
+  from {
+    opacity: 0.95;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.hero-loader__cell {
+  fill: var(--c0);
+  animation: hero-noise-cycle var(--cell-duration, 200ms) steps(1) var(--cell-delay, 0ms) infinite;
+}
+
+@keyframes hero-noise-cycle {
+  0% {
+    fill: var(--c0);
+    opacity: 0.9;
+  }
+  25% {
+    fill: var(--c1);
+    opacity: 0.6;
+  }
+  50% {
+    fill: var(--c2);
+    opacity: 1;
+  }
+  75% {
+    fill: var(--c3);
+    opacity: 0.7;
+  }
+  100% {
+    fill: var(--c0);
+    opacity: 0.9;
+  }
+}
+
+.hero-loader__flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.55) 0%, transparent 65%);
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+}
+
+.hero-loader[data-phase="flash"] .hero-loader__flash {
+  animation: hero-flash 260ms ease-out forwards;
+}
+
+@keyframes hero-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+
+.hero-loader__name {
+  position: relative;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 380ms ease-out,
+    transform 380ms ease-out;
+}
+
+.hero-loader[data-phase="name"] .hero-loader__name,
+.hero-loader[data-phase="hold"] .hero-loader__name,
+.hero-loader[data-phase="exit"] .hero-loader__name {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero-loader__name-display {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--tg-theme-text-color, #0a0a0a);
+}
+
+.hero-loader__name-lead {
+  opacity: 0.78;
+}
+
+.hero-loader__name-accent {
+  color: #f18928;
+  font-weight: 600;
+  background: linear-gradient(90deg, #f18928 0%, #fedaa5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+}
+
+.hero-loader[data-phase="name"] .hero-loader__name-accent::after,
+.hero-loader[data-phase="hold"] .hero-loader__name-accent::after,
+.hero-loader[data-phase="exit"] .hero-loader__name-accent::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, #f18928, transparent);
+  animation: hero-accent-sweep 750ms cubic-bezier(0.22, 1, 0.36, 1) 150ms forwards;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+@keyframes hero-accent-sweep {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-loader__svg-wrap svg.hero-loader__svg,
+  .hero-loader__panel,
+  .hero-loader__noise,
+  .hero-loader__cell,
+  .hero-loader__flash,
+  .hero-loader[data-phase="name"] .hero-loader__name-accent::after,
+  .hero-loader[data-phase="hold"] .hero-loader__name-accent::after,
+  .hero-loader[data-phase="exit"] .hero-loader__name-accent::after {
+    animation: none;
+  }
+  .hero-loader__panel {
+    transform: none;
+    opacity: 1;
+  }
+  .hero-loader__name {
+    opacity: 1;
+    transform: none;
+  }
+}
