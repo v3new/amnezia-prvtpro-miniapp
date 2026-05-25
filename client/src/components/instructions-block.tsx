@@ -1,4 +1,3 @@
-import {QRCodeSVG} from 'qrcode.react'
 import {useMemo, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {Link} from 'react-router-dom'
@@ -14,6 +13,8 @@ import {hapticLight, tg} from '../lib/telegram.ts'
 import {type DownloadFormat, useConfigActions} from '../lib/use-config-actions.ts'
 import {Button} from './button.tsx'
 import {CopyIcon, DownloadIcon} from './icons.tsx'
+import {InstructionExtraActions} from './instruction-extra-actions.tsx'
+import {InstructionQrCard} from './instruction-qr-card.tsx'
 
 interface Props {
   protocol: string
@@ -25,9 +26,11 @@ interface Props {
 
 const FLOW_ICON: Record<FlowId, string> = {
   qr: '📷',
+  link_qr: '📷',
   deeplink: '📲',
   link_paste: '🔗',
   config_file: '💾',
+  config_clipboard: '📋',
   router_manual: '📡',
 }
 
@@ -155,31 +158,12 @@ function SupportedInstructions({
         </div>
       )}
 
-      {/* Always-available fallback actions — useful even if the main flow doesn't work */}
-      {config && <FallbackActions config={config} format={entry.primary_app.format ?? null} />}
-    </div>
-  )
-}
-
-function FallbackActions({config, format}: {config: ConnectionConfig; format: DownloadFormat | null}) {
-  const {t} = useTranslation()
-  const actions = useConfigActions(config)
-  return (
-    <div className="space-y-2 rounded-2xl bg-tg-secondaryBg p-4">
-      <div className="text-sm font-medium">{t('instructionsBlock.fallbackTitle')}</div>
-      <div className="text-xs text-tg-hint">{t('instructionsBlock.fallbackHint')}</div>
-      <div className="grid grid-cols-2 gap-2 pt-1">
-        <Button icon={<CopyIcon />} onClick={actions.copyLink}>
-          {t('instructionsBlock.copyLinkShort')}
-        </Button>
-        <Button icon={<CopyIcon />} onClick={actions.copyConfig}>
-          {t('instructionsBlock.copyConfigShort')}
-        </Button>
-      </div>
-      {format && (
-        <Button icon={<DownloadIcon />} onClick={() => actions.download(format)} className="w-full">
-          {t(format === 'vpn' ? 'instructionsBlock.downloadVpn' : 'instructionsBlock.downloadConf')}
-        </Button>
+      {config && (
+        <InstructionExtraActions
+          activeFlowId={activeFlow.id}
+          config={config}
+          format={entry.primary_app.format ?? null}
+        />
       )}
     </div>
   )
@@ -231,21 +215,11 @@ function ArtifactBlock({
   }
 
   if (flowId === 'qr') {
-    return (
-      <div className="flex flex-col items-center gap-3">
-        <div className="rounded-2xl bg-white p-4">
-          <QRCodeSVG
-            value={config.qr_payload}
-            size={360}
-            fgColor="#000000"
-            bgColor="#ffffff"
-            level="M"
-            marginSize={2}
-            style={{width: '100%', height: 'auto', maxWidth: 360}}
-          />
-        </div>
-      </div>
-    )
+    return <InstructionQrCard value={config.qr_payload} />
+  }
+
+  if (flowId === 'link_qr') {
+    return <InstructionQrCard value={config.vpn_link} />
   }
 
   if (flowId === 'deeplink') {
@@ -280,7 +254,15 @@ function ArtifactBlock({
     )
   }
 
-  if (flowId === 'config_file' || flowId === 'router_manual') {
+  if (flowId === 'config_file' || flowId === 'config_clipboard' || flowId === 'router_manual') {
+    if (format === 'vpn') {
+      return (
+        <Button variant="primary" icon={<DownloadIcon />} onClick={() => actions.download(format)} className="w-full">
+          {t('instructionsBlock.downloadVpn')}
+        </Button>
+      )
+    }
+
     return (
       <div className="space-y-2">
         <textarea
@@ -294,7 +276,7 @@ function ArtifactBlock({
           </Button>
           {format && (
             <Button variant="primary" icon={<DownloadIcon />} onClick={() => actions.download(format)}>
-              {t(format === 'vpn' ? 'instructionsBlock.downloadVpn' : 'instructionsBlock.downloadConf')}
+              {t('instructionsBlock.downloadConf')}
             </Button>
           )}
         </div>

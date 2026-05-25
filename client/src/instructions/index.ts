@@ -1,6 +1,6 @@
 import raw from './instructions.json'
 
-export type FlowId = 'qr' | 'deeplink' | 'link_paste' | 'config_file' | 'router_manual'
+export type FlowId = 'qr' | 'link_qr' | 'deeplink' | 'link_paste' | 'config_file' | 'config_clipboard' | 'router_manual'
 
 export interface InstructionApp {
   name: string

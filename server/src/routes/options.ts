@@ -21,12 +21,12 @@ const ALL_PROTOCOLS: Record<string, ProtocolDef> = {
   xray: {
     slug: 'xray',
     label: 'Xray (VLESS-Reality)',
-    recommended_for: [],
+    recommended_for: ['linux'],
   },
   wireguard: {
     slug: 'wireguard',
     label: 'WireGuard',
-    recommended_for: ['linux', 'androidtv', 'router'],
+    recommended_for: ['androidtv', 'router'],
   },
   awg: {slug: 'awg', label: 'AmneziaWG', recommended_for: []},
   awg_legacy: {slug: 'awg_legacy', label: 'AmneziaWG (legacy)', recommended_for: []},
