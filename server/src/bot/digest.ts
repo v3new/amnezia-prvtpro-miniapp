@@ -1,5 +1,6 @@
 import type {Bot} from 'grammy'
 import {GrammyError} from 'grammy'
+import {compareByFormFactorThenName} from '../lib/device-order.ts'
 import {getDevice} from '../lib/devices.ts'
 import {parseDescription, parseDeviceFromName} from '../lib/naming.ts'
 import {computeNextReset, daysUntil} from '../lib/profile.ts'
@@ -57,18 +58,19 @@ export function renderDigest(
 ): string {
   const lines: string[] = []
   const firstName = user.username || 'друг'
-  lines.push(`📊 Привет, ${escapeHtml(firstName)}. Текущий статус:`)
-  lines.push('━━━━━━━━━━━━━━━━━━')
+  lines.push(`Привет, ${escapeHtml(firstName)} 🖤`)
+  lines.push('')
+  lines.push('Глянем, как у тебя дела:')
+  lines.push('')
 
   const limit = user.traffic_limit ?? 0
   const used = user.traffic_used ?? 0
   if (limit > 0) {
     const percent = Math.min(100, Math.round((used / limit) * 100))
-    lines.push(`Лимит: ${formatBytes(limit)}`)
-    lines.push(`Использовано: ${formatBytes(used)} (${percent}%)`)
-    lines.push(progressBar(percent))
+    lines.push(`📊 Накапало: ${formatBytes(used)} из ${formatBytes(limit)}`)
+    lines.push(`${progressBar(percent)} ${percent}%`)
   } else {
-    lines.push(`Использовано: ${formatBytes(used)}`)
+    lines.push(`📊 Накапало: ${formatBytes(used)} (без лимита)`)
   }
 
   const strategy = user.traffic_reset_strategy ?? 'never'
@@ -79,28 +81,32 @@ export function renderDigest(
       const dateStr = formatRuDate(next)
       lines.push(
         days !== null && days >= 0
-          ? `Сбросится: ${dateStr} (через ${days} ${pluralDays(days)})`
-          : `Сбросится: ${dateStr}`,
+          ? `🔄 Обнулится: ${dateStr} (через ${days} ${pluralDays(days)})`
+          : `🔄 Обнулится: ${dateStr}`,
       )
     }
   }
 
   lines.push('')
   if (conns.length === 0) {
-    lines.push('У тебя пока нет ни одного подключения. Открой кабинет и создай первое.')
+    lines.push('Подключений пока нет. Открой кабинет и сделай первое — это минута')
   } else {
-    lines.push('Твои подключения:')
-    for (const conn of conns) {
-      const slug = parseDeviceFromName(conn.name) ?? 'other'
-      const desc = parseDescription(conn.name) ?? conn.name
-      const dev = getDevice(slug)
-      lines.push(`${dev.icon} ${escapeHtml(desc)} (${dev.label}) — ${formatBytes(conn.last_bytes)}`)
+    lines.push('🔌 Твои подключения:')
+    const sorted = conns
+      .map((conn) => {
+        const device = parseDeviceFromName(conn.name) ?? 'other'
+        const description = parseDescription(conn.name) ?? conn.name
+        return {conn, device, description}
+      })
+      .sort(compareByFormFactorThenName)
+    for (const {conn, device, description} of sorted) {
+      const dev = getDevice(device)
+      lines.push(`${dev.icon} ${escapeHtml(description)} — ${formatBytes(conn.last_bytes)}`)
     }
   }
 
   lines.push('')
-  lines.push('Открой кабинет, если нужно что-то изменить.')
-  lines.push(`Нужна помощь? @${escapeHtml(adminHandle)}`)
+  lines.push(`Если что — я рядом: @${escapeHtml(adminHandle)}`)
   return lines.join('\n')
 }
 

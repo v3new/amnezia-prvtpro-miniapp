@@ -110,10 +110,12 @@
     "openInApp": "Открыть в {{app}}",
     "orCopyLink": "или скопировать ссылку",
     "copyLink": "Скопировать ссылку",
+    "copyConfig": "Скопировать конфиг",
     "downloadConf": "Скачать .conf",
     "downloadVpn": "Скачать .vpn",
     "copyLinkShort": "Ссылку",
     "copyConfigShort": "Конфиг",
+    "otherAppsTitle": "Для других приложений",
     "fallbackTitle": "Запасной вариант",
     "fallbackHint": "Если основной путь не сработал — скопируй ссылку или конфиг вручную и вставь в приложение"
   },

@@ -110,10 +110,12 @@
     "openInApp": "Open in {{app}}",
     "orCopyLink": "or copy the link",
     "copyLink": "Copy link",
+    "copyConfig": "Copy config",
     "downloadConf": "Download .conf",
     "downloadVpn": "Download .vpn",
     "copyLinkShort": "Link",
     "copyConfigShort": "Config",
+    "otherAppsTitle": "For other apps",
     "fallbackTitle": "Fallback options",
     "fallbackHint": "If the main flow didn't work — copy the link or config manually and paste it into the app."
   },

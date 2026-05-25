@@ -86,10 +86,8 @@ function SupportedInstructions({
 
   return (
     <div className="space-y-3">
-      {/* Primary app card */}
       <PrimaryAppCard entry={entry} />
 
-      {/* Flow switcher: segmented control makes "either/or" obvious */}
       {entry.flows.length > 1 && (
         <div className="space-y-1.5">
           <div className="flex gap-1 rounded-xl bg-tg-secondaryBg p-1">
@@ -118,7 +116,6 @@ function SupportedInstructions({
         </div>
       )}
 
-      {/* Steps */}
       <ol className="space-y-2 rounded-2xl bg-tg-secondaryBg p-4 text-sm">
         {activeFlow.steps.map((s, idx) => (
           <li key={`${activeFlow.id}-${s}`} className="flex gap-2">
@@ -128,7 +125,6 @@ function SupportedInstructions({
         ))}
       </ol>
 
-      {/* Artifact block — only when we have a real config */}
       {config && (
         <ArtifactBlock
           flowId={activeFlow.id}
@@ -138,7 +134,6 @@ function SupportedInstructions({
         />
       )}
 
-      {/* Alternative apps — always visible, no toggle */}
       {entry.alternative_apps && entry.alternative_apps.length > 0 && (
         <div className="rounded-2xl bg-tg-secondaryBg p-4">
           <div className="text-sm font-medium">{t('instructionsBlock.alternatives')}</div>
@@ -254,7 +249,22 @@ function ArtifactBlock({
     )
   }
 
-  if (flowId === 'config_file' || flowId === 'config_clipboard' || flowId === 'router_manual') {
+  if (flowId === 'config_clipboard') {
+    return (
+      <div className="space-y-2">
+        <textarea
+          readOnly
+          value={config.config}
+          className="h-48 w-full rounded-xl bg-tg-secondaryBg p-3 font-mono text-xs"
+        />
+        <Button variant="primary" icon={<CopyIcon />} onClick={actions.copyConfig} className="w-full">
+          {t('instructionsBlock.copyConfig')}
+        </Button>
+      </div>
+    )
+  }
+
+  if (flowId === 'config_file' || flowId === 'router_manual') {
     if (format === 'vpn') {
       return (
         <Button variant="primary" icon={<DownloadIcon />} onClick={() => actions.download(format)} className="w-full">

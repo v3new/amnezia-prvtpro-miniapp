@@ -1,5 +1,6 @@
+import {useMemo} from 'react'
 import {useTranslation} from 'react-i18next'
-import {tg} from '../lib/telegram.ts'
+import {pickUnknownReply} from '../lib/unknown-replies.ts'
 
 interface Props {
   code: string
@@ -7,22 +8,23 @@ interface Props {
   adminHandle?: string
 }
 
-export function ErrorScreen({code, message, adminHandle}: Props) {
+export function ErrorScreen({code, message}: Props) {
   const {t} = useTranslation()
-  const showAdmin = code === 'user_not_provisioned' && adminHandle
+  const isUnknown = code === 'user_not_provisioned'
+  const unknownReply = useMemo(() => (isUnknown ? pickUnknownReply() : null), [isUnknown])
+
+  if (isUnknown && unknownReply) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-tg-bg p-6 text-center text-tg-text">
+        <p className="text-lg font-medium">{unknownReply}</p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen flex-col items-center justify-center gap-4 bg-tg-bg p-6 text-center text-tg-text">
       <div className="text-6xl">🔒</div>
       <p className="text-lg font-medium">{message}</p>
-      {showAdmin && (
-        <button
-          type="button"
-          className="rounded-xl bg-tg-button px-5 py-3 text-tg-buttonText"
-          onClick={() => tg()?.openTelegramLink(`https://t.me/${adminHandle}`)}
-        >
-          {t('common.writeAdmin')}
-        </button>
-      )}
       <button type="button" className="text-sm text-tg-link underline" onClick={() => location.reload()}>
         {t('common.tryAgain')}
       </button>
