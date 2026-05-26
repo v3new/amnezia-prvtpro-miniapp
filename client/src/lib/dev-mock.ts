@@ -50,10 +50,10 @@ const OPTIONS = {
     {
       slug: 'awg2',
       label: 'AmneziaWG 2.0',
-      recommended_for: ['iphone', 'ipad', 'android', 'android_tablet', 'mac', 'windows', 'appletv', 'other'],
+      recommended_for: ['iphone', 'ipad', 'android', 'android_tablet', 'mac', 'windows', 'other'],
     },
-    {slug: 'wireguard', label: 'WireGuard', recommended_for: ['androidtv', 'router']},
-    {slug: 'xray', label: 'Xray (VLESS-Reality)', recommended_for: ['linux']},
+    {slug: 'wireguard', label: 'WireGuard', recommended_for: ['router']},
+    {slug: 'xray', label: 'Xray (VLESS-Reality)', recommended_for: ['linux', 'appletv', 'androidtv']},
   ],
   admin_contact_url: 'https://t.me/admin',
   donate_url: 'https://example.com/donate',
@@ -176,7 +176,7 @@ export function installDevMock(): void {
           online: true,
           ping_ms: 18,
           uptime_seconds: 1_200_000,
-          protocols_available: ['awg2', 'wireguard'],
+          protocols_available: ['awg2', 'xray', 'wireguard'],
         }),
       )
     if (path === '/api/v1/connections' && method === 'GET')

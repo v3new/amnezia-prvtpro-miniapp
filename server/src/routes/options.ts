@@ -16,17 +16,17 @@ const ALL_PROTOCOLS: Record<string, ProtocolDef> = {
   awg2: {
     slug: 'awg2',
     label: 'AmneziaWG 2.0',
-    recommended_for: ['iphone', 'ipad', 'android', 'android_tablet', 'mac', 'windows', 'appletv', 'other'],
+    recommended_for: ['iphone', 'ipad', 'android', 'android_tablet', 'mac', 'windows', 'other'],
   },
   xray: {
     slug: 'xray',
     label: 'Xray (VLESS-Reality)',
-    recommended_for: ['linux'],
+    recommended_for: ['linux', 'appletv', 'androidtv'],
   },
   wireguard: {
     slug: 'wireguard',
     label: 'WireGuard',
-    recommended_for: ['androidtv', 'router'],
+    recommended_for: ['router'],
   },
   awg: {slug: 'awg', label: 'AmneziaWG', recommended_for: []},
   awg_legacy: {slug: 'awg_legacy', label: 'AmneziaWG (legacy)', recommended_for: []},

@@ -19,7 +19,10 @@ function buildWelcomeScript(name: string): WelcomeStep[] {
       delayBefore: 2000,
     },
     {text: 'И это только начало', delayBefore: 2500},
-    {text: 'Скоро за VPN-трафик придётся платить. Белые списки, чёрные списки. Каждый мегабайт свободы по счётчику', delayBefore: 2000},
+    {
+      text: 'Скоро за VPN-трафик придётся платить. Белые списки, чёрные списки. Каждый мегабайт свободы по счётчику',
+      delayBefore: 2000,
+    },
     {
       text: 'А пока — этот идиотский танец: включить VPN, чтобы написать другу, выключить VPN, чтобы оплатить такси, снова включить, чтобы открыть ChatGPT, снова выключить, чтобы зайти в банк',
       delayBefore: 1800,
@@ -101,7 +104,13 @@ export function registerBotHandlers(bot: Bot, env: Env, panel: PanelClient): voi
 
   bot.command('start', async (ctx) => {
     const name = ctx.from?.first_name ?? 'друг'
-    await playWelcomeWithButton(ctx, name)
+    console.log(`[bot] /start from tgId=${ctx.from?.id} name=${name}`)
+    try {
+      await playWelcomeWithButton(ctx, name)
+    } catch (e) {
+      console.error('[bot] /start handler crashed', e)
+      throw e
+    }
   })
 
   bot.command('cabinet', async (ctx) => {

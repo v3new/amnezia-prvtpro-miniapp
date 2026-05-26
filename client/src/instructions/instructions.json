@@ -989,12 +989,12 @@
       "flows": [
         {
           "id": "link_paste",
-          "title": "Перенести ссылку с iPhone",
+          "title": "Web Import через телефон",
           "steps": [
             "Поставь Happ for TV на Apple TV из App Store",
-            "На своём iPhone открой это окно и нажми «Скопировать ссылку»",
-            "На Apple TV в Happ выбери «Add server» → «Import from iPhone/iPad remote»",
-            "Когда tvOS покажет поле ввода, вставь ссылку с iPhone через клавиатуру-подсказку",
+            "Открой Happ for TV и выбери «Web Import»",
+            "На телефоне отсканируй QR-код с экрана ТВ или открой tv.happ.su и введи код с ТВ",
+            "В этом кабинете нажми «Скопировать ссылку», вставь её в форму Web Import и отправь",
             "Нажми «Connect» пультом"
           ]
         }
@@ -1010,6 +1010,10 @@
       },
       "alternative_apps": [
         {
+          "name": "Happ APK",
+          "store_url": "https://github.com/Happ-proxy/happ-android/releases/latest/download/Happ.apk"
+        },
+        {
           "name": "v2rayNG",
           "store_url": "https://github.com/2dust/v2rayNG/releases/latest"
         }
@@ -1018,11 +1022,12 @@
       "flows": [
         {
           "id": "link_paste",
-          "title": "Вставить ссылку на ТВ",
+          "title": "Web Import через телефон",
           "steps": [
             "Поставь Happ из Google Play на Android TV",
-            "Открой этот кабинет в браузере на Android TV и нажми «Скопировать ссылку»",
-            "В Happ нажми «+» → «Paste from clipboard»",
+            "Открой Happ и выбери «Web Import»",
+            "На телефоне отсканируй QR-код с экрана ТВ или открой tv.happ.su и введи код с ТВ",
+            "В этом кабинете нажми «Скопировать ссылку», вставь её в форму Web Import и отправь",
             "Нажми «Connect» пультом"
           ]
         }
