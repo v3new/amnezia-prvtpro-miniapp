@@ -95,14 +95,14 @@ async function main() {
     return c.json(err('internal_error', 'Внутренняя ошибка'), 500)
   })
 
-  await startBot(bot, env)
-
   const server = Bun.serve({
     port: env.PORT,
     fetch: app.fetch,
     idleTimeout: SERVER_IDLE_TIMEOUT_SEC,
   })
   console.log(`[server] listening on http://localhost:${server.port}`)
+
+  startBot(bot, env)
 }
 
 function getStaticRoot(): string {
