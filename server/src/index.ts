@@ -1,7 +1,7 @@
 import {Hono} from 'hono'
 import {cors} from 'hono/cors'
 import {err} from './action-result.ts'
-import {createBot, startBot} from './bot/index.ts'
+import {BOT_WEBHOOK_PATH, createBot, createBotWebhookHandler, startBot} from './bot/index.ts'
 import {loadEnv} from './env.ts'
 import {rateLimit} from './lib/rate-limit.ts'
 import {requestLogger} from './lib/request-logger.ts'
@@ -76,6 +76,9 @@ async function main() {
   app.route('/dl', createDownloadRouter(env, panel))
 
   const bot = createBot(env, panel)
+  if (env.TG_BOT_MODE === 'webhook') {
+    app.post(BOT_WEBHOOK_PATH, createBotWebhookHandler(bot, env))
+  }
   app.route('/internal', createInternalCronRouter(env, panel, bot))
 
   const spa = serveSpa(getStaticRoot())

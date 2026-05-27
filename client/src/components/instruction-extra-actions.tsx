@@ -8,10 +8,12 @@ import {CopyIcon, DownloadIcon} from './icons.tsx'
 export function InstructionExtraActions({
   activeFlowId,
   config,
+  importLink,
   format,
 }: {
   activeFlowId: FlowId
   config: ConnectionConfig
+  importLink: string
   format: DownloadFormat | null
 }) {
   const {t} = useTranslation()
@@ -30,7 +32,7 @@ export function InstructionExtraActions({
             </Button>
           )}
           {showLink && (
-            <Button icon={<CopyIcon />} onClick={actions.copyLink}>
+            <Button icon={<CopyIcon />} onClick={() => actions.copyLink(importLink)}>
               {t('instructionsBlock.copyLinkShort')}
             </Button>
           )}
@@ -50,7 +52,7 @@ export function InstructionExtraActions({
 
   if (activeFlowId === 'link_paste') return null
   return (
-    <Button icon={<CopyIcon />} onClick={actions.copyLink} className="w-full">
+    <Button icon={<CopyIcon />} onClick={() => actions.copyLink(importLink)} className="w-full">
       {t('instructionsBlock.copyLink')}
     </Button>
   )

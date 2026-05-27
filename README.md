@@ -50,7 +50,7 @@ server/src/bot          Telegram bot handlers и digest
 ```
 
 Сервер отдаёт собранный `client/dist`, публикует API в `/api/v1/*`, ссылки скачивания в `/dl/*`, health check в
-`/health` и внутренние cron-эндпоинты в `/internal/*`.
+`/health`, Telegram webhook в `/telegram/webhook` и внутренние cron-эндпоинты в `/internal/*`.
 
 ## 5. Как запустить
 
@@ -79,6 +79,17 @@ Production flow:
 bun run build
 bun run start
 ```
+
+Для production-деплоя с green/blue rollout бот должен работать через webhook:
+
+```bash
+TG_BOT_MODE=webhook
+TG_WEBHOOK_SECRET=<random-secret-16-plus-chars>
+```
+
+Webhook URL регистрируется автоматически как `MINI_APP_URL + /telegram/webhook`.
+
+Для локальной разработки без публичного HTTPS URL можно временно использовать `TG_BOT_MODE=polling`.
 
 Проверки:
 

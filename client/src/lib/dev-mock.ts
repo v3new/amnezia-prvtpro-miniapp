@@ -112,13 +112,46 @@ const CONNECTIONS = [
   },
 ]
 
-const MOCK_CONFIG = {
+const MOCK_WG_CONFIG = {
   id: 'c1',
   name: 'v3new:iphone:wg2 (личный)',
   description: 'личный',
   config: '[Interface]\nPrivateKey=AAAA...\nAddress=10.0.0.2/32\n[Peer]\nPublicKey=BBBB...',
   vpn_link: 'vpn://demo-link',
-  qr_payload: 'vpn://demo-link',
+  qr_payload: '[Interface]\nPrivateKey=AAAA...\nAddress=10.0.0.2/32\n[Peer]\nPublicKey=BBBB...',
+}
+
+function mockConfigFor(protocol: string, device: string, description: string) {
+  if (protocol === 'xray') {
+    const link =
+      'vless://b275536f-38d5-421a-a80a-bc3a65d6471d@example.com:443?type=tcp&security=reality&fp=chrome&flow=xtls-rprx-vision#demo'
+    return {
+      id: 'c-xray',
+      name: `v3new:${device}:xray (${description})`,
+      description,
+      config: link,
+      vpn_link: 'vpn://legacy-xray-demo',
+      qr_payload: link,
+    }
+  }
+  return MOCK_WG_CONFIG
+}
+
+function parseCreateBody(body: BodyInit | null | undefined): {device: string; protocol: string; description: string} {
+  if (typeof body !== 'string') return {device: 'iphone', protocol: 'awg2', description: 'личный'}
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(body)
+  } catch {
+    return {device: 'iphone', protocol: 'awg2', description: 'личный'}
+  }
+  if (!parsed || typeof parsed !== 'object') return {device: 'iphone', protocol: 'awg2', description: 'личный'}
+  const obj = parsed as Record<string, unknown>
+  return {
+    device: typeof obj.device === 'string' ? obj.device : 'iphone',
+    protocol: typeof obj.protocol === 'string' ? obj.protocol : 'awg2',
+    description: typeof obj.description === 'string' ? obj.description : 'личный',
+  }
 }
 
 export function installDevMock(): void {
@@ -181,14 +214,17 @@ export function installDevMock(): void {
       )
     if (path === '/api/v1/connections' && method === 'GET')
       return json(res({connections: CONNECTIONS, limit: 6, used_slots: CONNECTIONS.length}))
-    if (path === '/api/v1/connections' && method === 'POST') return json(res(MOCK_CONFIG))
-    if (path.match(/^\/api\/v1\/connections\/[^/]+\/config$/)) return json(res(MOCK_CONFIG))
+    if (path === '/api/v1/connections' && method === 'POST') {
+      const body = parseCreateBody(init?.body)
+      return json(res(mockConfigFor(body.protocol, body.device, body.description)))
+    }
+    if (path.match(/^\/api\/v1\/connections\/[^/]+\/config$/)) return json(res(MOCK_WG_CONFIG))
     if (path.match(/^\/api\/v1\/connections\/[^/]+\/download-url$/) && method === 'POST') {
       const body = init?.body ? JSON.parse(init.body as string) : {format: 'conf'}
       const fmt = body.format === 'vpn' ? 'vpn' : 'conf'
-      const text = fmt === 'vpn' ? MOCK_CONFIG.vpn_link : MOCK_CONFIG.config
+      const text = fmt === 'vpn' ? MOCK_WG_CONFIG.vpn_link : MOCK_WG_CONFIG.config
       // Mimic server sanitisation of the panel-side connection name.
-      const base = (MOCK_CONFIG.name || 'amnezia')
+      const base = (MOCK_WG_CONFIG.name || 'amnezia')
         .normalize('NFC')
         .replace(/[^\p{L}\p{N}._-]+/gu, '_')
         .replace(/^_+|_+$/g, '')

@@ -9,7 +9,7 @@ const DOWNLOAD_URL_REVOKE_MS = 1000
 export type DownloadFormat = 'conf' | 'vpn'
 
 export interface ConfigActions {
-  copyLink: () => void
+  copyLink: (value?: string) => void
   copyConfig: () => void
   /**
    * Trigger a download in the most reliable way for the current Telegram client.
@@ -29,7 +29,7 @@ export function useConfigActions(config: ConnectionConfig): ConfigActions {
   }
 
   return {
-    copyLink: () => writeClipboard(config.vpn_link),
+    copyLink: (value) => writeClipboard(value ?? config.vpn_link),
     copyConfig: () => writeClipboard(config.config),
     download: async (format) => {
       if (!format) return

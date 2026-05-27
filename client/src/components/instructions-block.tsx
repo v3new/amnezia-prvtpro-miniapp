@@ -9,12 +9,10 @@ import {
   type InstructionSupportedEntry,
   lookupInstructions,
 } from '../instructions/index.ts'
+import {getImportLink} from '../lib/config-artifacts.ts'
 import {hapticLight, tg} from '../lib/telegram.ts'
-import {type DownloadFormat, useConfigActions} from '../lib/use-config-actions.ts'
-import {Button} from './button.tsx'
-import {CopyIcon, DownloadIcon} from './icons.tsx'
+import {InstructionArtifactBlock} from './instruction-artifact-block.tsx'
 import {InstructionExtraActions} from './instruction-extra-actions.tsx'
-import {InstructionQrCard} from './instruction-qr-card.tsx'
 
 interface Props {
   protocol: string
@@ -64,15 +62,17 @@ export function InstructionsBlock({protocol, device, options, config}: Props) {
     )
   }
 
-  return <SupportedInstructions entry={entry} device={device} options={options} config={config} />
+  return <SupportedInstructions entry={entry} protocol={protocol} device={device} options={options} config={config} />
 }
 
 function SupportedInstructions({
   entry,
+  protocol,
   device,
   config,
 }: {
   entry: InstructionSupportedEntry
+  protocol: string
   device: string
   options: Options
   config: ConnectionConfig | null
@@ -80,6 +80,7 @@ function SupportedInstructions({
   const {t} = useTranslation()
   const initialFlow = useMemo(() => defaultFlowFor(entry, device), [entry, device])
   const [flowId, setFlowId] = useState<FlowId>(initialFlow)
+  const importLink = config ? getImportLink(protocol, config) : ''
 
   const activeFlow: InstructionFlow | undefined = entry.flows.find((f) => f.id === flowId) ?? entry.flows[0]
   if (!activeFlow) return null
@@ -126,8 +127,9 @@ function SupportedInstructions({
       </ol>
 
       {config && (
-        <ArtifactBlock
+        <InstructionArtifactBlock
           flowId={activeFlow.id}
+          protocol={protocol}
           config={config}
           appName={entry.primary_app.name}
           format={entry.primary_app.format ?? null}
@@ -157,6 +159,7 @@ function SupportedInstructions({
         <InstructionExtraActions
           activeFlowId={activeFlow.id}
           config={config}
+          importLink={importLink}
           format={entry.primary_app.format ?? null}
         />
       )}
@@ -187,112 +190,4 @@ function PrimaryAppCard({entry}: {entry: InstructionSupportedEntry}) {
       </button>
     </div>
   )
-}
-
-function ArtifactBlock({
-  flowId,
-  config,
-  appName,
-  format,
-}: {
-  flowId: FlowId
-  config: ConnectionConfig
-  appName: string
-  format: DownloadFormat | null
-}) {
-  const {t} = useTranslation()
-  const actions = useConfigActions(config)
-  const onOpenLink = () => {
-    hapticLight()
-    const w = tg()
-    if (w) w.openLink(config.vpn_link)
-    else window.open(config.vpn_link, '_blank')
-  }
-
-  if (flowId === 'qr') {
-    return <InstructionQrCard value={config.qr_payload} />
-  }
-
-  if (flowId === 'link_qr') {
-    return <InstructionQrCard value={config.vpn_link} />
-  }
-
-  if (flowId === 'deeplink') {
-    return (
-      <div className="space-y-2">
-        <button
-          type="button"
-          onClick={onOpenLink}
-          className="w-full rounded-2xl bg-tg-button p-4 font-medium text-tg-buttonText"
-        >
-          {t('instructionsBlock.openInApp', {app: appName})}
-        </button>
-        <button
-          type="button"
-          onClick={actions.copyLink}
-          className="w-full rounded-xl bg-tg-secondaryBg p-2 text-xs text-tg-hint"
-        >
-          {t('instructionsBlock.orCopyLink')}
-        </button>
-      </div>
-    )
-  }
-
-  if (flowId === 'link_paste') {
-    return (
-      <div className="space-y-2">
-        <textarea readOnly value={config.vpn_link} className="h-20 w-full rounded-xl bg-tg-secondaryBg p-3 text-xs" />
-        <Button variant="primary" icon={<CopyIcon />} onClick={actions.copyLink} className="w-full">
-          {t('instructionsBlock.copyLink')}
-        </Button>
-      </div>
-    )
-  }
-
-  if (flowId === 'config_clipboard') {
-    return (
-      <div className="space-y-2">
-        <textarea
-          readOnly
-          value={config.config}
-          className="h-48 w-full rounded-xl bg-tg-secondaryBg p-3 font-mono text-xs"
-        />
-        <Button variant="primary" icon={<CopyIcon />} onClick={actions.copyConfig} className="w-full">
-          {t('instructionsBlock.copyConfig')}
-        </Button>
-      </div>
-    )
-  }
-
-  if (flowId === 'config_file' || flowId === 'router_manual') {
-    if (format === 'vpn') {
-      return (
-        <Button variant="primary" icon={<DownloadIcon />} onClick={() => actions.download(format)} className="w-full">
-          {t('instructionsBlock.downloadVpn')}
-        </Button>
-      )
-    }
-
-    return (
-      <div className="space-y-2">
-        <textarea
-          readOnly
-          value={config.config}
-          className="h-48 w-full rounded-xl bg-tg-secondaryBg p-3 font-mono text-xs"
-        />
-        <div className={`grid gap-2 ${format ? 'grid-cols-2' : 'grid-cols-1'}`}>
-          <Button icon={<CopyIcon />} onClick={actions.copyConfig}>
-            {t('detail.copy')}
-          </Button>
-          {format && (
-            <Button variant="primary" icon={<DownloadIcon />} onClick={() => actions.download(format)}>
-              {t('instructionsBlock.downloadConf')}
-            </Button>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  return null
 }
