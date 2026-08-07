@@ -26,6 +26,10 @@ export type PanelUser = z.infer<typeof PanelUserSchema>
 
 const UsersEnvelopeSchema = z.object({
   users: z.array(PanelUserSchema),
+  total: z.number().optional(),
+  page: z.number().optional(),
+  size: z.number().optional(),
+  pages: z.number().optional(),
 })
 
 export interface PanelConnection {
@@ -106,6 +110,7 @@ export interface PanelClientOptions {
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 15_000
 const DEFAULT_USERS_CACHE_TTL_MS = 3600 * 1000
+const USERS_PAGE_SIZE = 100
 const PROFILE_REFRESH_MS = 60 * 1000
 // Connection configs in our model are immutable — no "edit" action exists.
 // 30 days covers any realistic user session; explicit invalidation on
@@ -224,9 +229,27 @@ export class PanelClient {
   }
 
   private async fetchUsersFresh(): Promise<PanelUser[]> {
-    const data = await this.request('GET', '/api/users', undefined, UsersEnvelopeSchema)
-    this.usersCache = {at: Date.now(), users: data.users}
-    return data.users
+    const users: PanelUser[] = []
+    let page = 1
+
+    while (true) {
+      const data = await this.request(
+        'GET',
+        `/api/users?page=${page}&size=${USERS_PAGE_SIZE}`,
+        undefined,
+        UsersEnvelopeSchema,
+      )
+      users.push(...data.users)
+
+      // Older panel builds may omit pagination metadata. In that case, keep
+      // the historical one-request behavior; current builds always expose
+      // `pages`, so newly added users cannot be hidden on page 2+.
+      if (!data.pages || page >= data.pages || data.users.length === 0) break
+      page += 1
+    }
+
+    this.usersCache = {at: Date.now(), users}
+    return users
   }
 
   /** Bypass cache — call after mutating user state on the panel. */

@@ -54,7 +54,7 @@ describe('PanelClient.addConnection', () => {
     const mockFetch = (input: FetchInput, init?: FetchInit) => {
       const url = String(input)
       calls.push({url, init})
-      if (url.endsWith('/api/users')) {
+      if (url.includes('/api/users')) {
         return Promise.resolve(jsonResponse({users: [panelUser()]}))
       }
       if (url.includes('/connections?protocol=wireguard')) {
@@ -90,6 +90,57 @@ describe('PanelClient.addConnection', () => {
   })
 })
 
+describe('PanelClient user pagination', () => {
+  test('loads every page returned by the panel', async () => {
+    const requestedUrls: string[] = []
+    const mockFetch = (input: FetchInput, init?: FetchInit) => {
+      const url = String(input)
+      requestedUrls.push(url)
+      calls.push({url, init})
+      if (url.endsWith('/api/users?page=1&size=100')) {
+        return Promise.resolve(
+          jsonResponse({
+            users: [panelUser()],
+            total: 2,
+            page: 1,
+            size: 100,
+            pages: 2,
+          }),
+        )
+      }
+      if (url.endsWith('/api/users?page=2&size=100')) {
+        return Promise.resolve(
+          jsonResponse({
+            users: [{...panelUser(), id: 'user-2', username: 'second-user', telegramId: '283830388'}],
+            total: 2,
+            page: 2,
+            size: 100,
+            pages: 2,
+          }),
+        )
+      }
+      return Promise.resolve(jsonResponse({error: 'unexpected'}, 500))
+    }
+    globalThis.fetch = Object.assign(mockFetch, {preconnect: originalFetch.preconnect})
+
+    const panel = new PanelClient({
+      baseUrl: 'https://panel.example',
+      token: 'token',
+      serverId: 7,
+      protocols: ['wireguard'],
+    })
+
+    const users = await panel.listUsers()
+
+    expect(users).toHaveLength(2)
+    expect(users[1]?.username).toBe('second-user')
+    expect(requestedUrls).toEqual([
+      'https://panel.example/api/users?page=1&size=100',
+      'https://panel.example/api/users?page=2&size=100',
+    ])
+  })
+})
+
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -97,7 +148,7 @@ function jsonResponse(body: unknown, status = 200): Response {
   })
 }
 
-function panelUser(): unknown {
+function panelUser() {
   return {
     id: 'user-1',
     username: 'user',
