@@ -42,7 +42,32 @@
     "newConnection": "New connection",
     "admin": "Got a question",
     "donate": "Chip in",
-    "limitExceededOpen": "Traffic limit reached — tap to open"
+    "emptyBlocked": "No connections yet. You'll be able to create one once access is back"
+  },
+  "access": {
+    "traffic_limit": {
+      "blockedTitle": "You're out of traffic",
+      "warningTitle": "Traffic is running low",
+      "blockedBody": "Used {{used}} of {{limit}}. Your account isn't blocked — the traffic simply ran out, so the VPN stopped passing it.",
+      "warningBody": "Used {{used}} of {{limit}}, {{remaining}} left."
+    },
+    "expired": {
+      "blockedTitle": "Your access has expired",
+      "warningTitle": "Your access is expiring",
+      "body": "The subscription ran until {{date}}. The VPN stays off until it's renewed."
+    },
+    "admin": {
+      "blockedTitle": "Access is switched off",
+      "warningTitle": "Access is limited",
+      "body": "The account is disabled in the panel. Message the admin and we'll sort it out."
+    },
+    "willReset": "The limit resets on {{date}} — access comes back on its own",
+    "willResetHint": "Nothing to do. If you'd rather not wait, message the admin and they'll raise the limit sooner",
+    "details": "Details",
+    "stillWorksTitle": "What's happening right now",
+    "stillWorksConfigs": "• Your connections and configs are intact — no need to delete or set them up again",
+    "stillWorksTraffic": "• No traffic goes through the VPN; the internet works directly",
+    "stillWorksNoNew": "• New connections can't be created for now"
   },
   "wizard": {
     "stepDevice": "Device",
@@ -88,10 +113,6 @@
     "minuteAgo": "{{n}}m ago",
     "hourAgo": "{{n}}h ago",
     "dayAgo": "{{n}}d ago"
-  },
-  "limit": {
-    "title": "Traffic limit reached",
-    "willReset": "Resets {{date}}"
   },
   "instructions": {
     "title": "Guide",

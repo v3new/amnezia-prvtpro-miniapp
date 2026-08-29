@@ -2,12 +2,12 @@ import {Hono} from 'hono'
 import {err, ok} from '../action-result.ts'
 import type {Env} from '../env.ts'
 import type {PanelClient} from '../panel/client.ts'
-import {type AppVariables, activePanelUserMiddleware, authMiddleware} from './middleware.ts'
+import {type AppVariables, authMiddleware, requirePanelUser} from './middleware.ts'
 
 export function createServerRouter(env: Env, panel: PanelClient) {
   const app = new Hono<{Variables: AppVariables}>()
   app.use('*', authMiddleware(env))
-  app.use('*', activePanelUserMiddleware(panel))
+  app.use('*', requirePanelUser(panel))
 
   app.get('/server/status', async (c) => {
     try {

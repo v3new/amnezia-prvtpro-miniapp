@@ -3,9 +3,11 @@ import {GrammyError} from 'grammy'
 import {compareByFormFactorThenName} from '../lib/device-order.ts'
 import {getDevice} from '../lib/devices.ts'
 import {parseDescription, parseDeviceFromName} from '../lib/naming.ts'
-import {computeNextReset, daysUntil} from '../lib/profile.ts'
+import {type AccessReason, computeAccess, computeNextReset, daysUntil} from '../lib/profile.ts'
 import {formatBytes, progressBar} from '../lib/progress-bar.ts'
+import {escapeHtml, formatRuDate, pluralDays} from '../lib/ru-date.ts'
 import type {PanelClient, PanelUser} from '../panel/client.ts'
+import {sendWithRetry} from './send.ts'
 
 export interface DigestStats {
   processed: number
@@ -25,7 +27,9 @@ export async function runWeeklyDigest(deps: DigestDeps): Promise<DigestStats> {
   const users = await deps.panel.listUsers()
   for (const user of users) {
     stats.processed++
-    if (!user.enabled || !user.telegramId) {
+    // Blocked users are NOT skipped: someone whose traffic just ran out is the
+    // person most in need of an explanation, not the least.
+    if (!user.telegramId) {
       stats.skipped++
       continue
     }
@@ -60,8 +64,17 @@ export function renderDigest(
   const firstName = user.username || 'друг'
   lines.push(`Привет, ${escapeHtml(firstName)} 🖤`)
   lines.push('')
-  lines.push('Глянем, как у тебя дела:')
-  lines.push('')
+
+  const strategyForAccess = user.traffic_reset_strategy ?? 'never'
+  const access = computeAccess(user, computeNextReset(user.last_reset_at, strategyForAccess))
+  const blocked = access.status === 'blocked'
+  if (blocked) {
+    lines.push(renderBlockNotice(access.reason, access.self_heals_at))
+    lines.push('')
+  } else {
+    lines.push('Глянем, как у тебя дела:')
+    lines.push('')
+  }
 
   const limit = user.traffic_limit ?? 0
   const used = user.traffic_used ?? 0
@@ -73,9 +86,8 @@ export function renderDigest(
     lines.push(`📊 Накапало: ${formatBytes(used)} (без лимита)`)
   }
 
-  const strategy = user.traffic_reset_strategy ?? 'never'
-  if (strategy !== 'never') {
-    const next = computeNextReset(user.last_reset_at, strategy)
+  if (strategyForAccess !== 'never' && !access.self_heals_at) {
+    const next = computeNextReset(user.last_reset_at, strategyForAccess)
     if (next) {
       const days = daysUntil(next)
       const dateStr = formatRuDate(next)
@@ -89,7 +101,11 @@ export function renderDigest(
 
   lines.push('')
   if (conns.length === 0) {
-    lines.push('Подключений пока нет. Открой кабинет и сделай первое — это минута')
+    lines.push(
+      blocked
+        ? 'Подключений пока нет — создать новое получится, когда доступ вернётся'
+        : 'Подключений пока нет. Открой кабинет и сделай первое — это минута',
+    )
   } else {
     lines.push('🔌 Твои подключения:')
     const sorted = conns
@@ -110,47 +126,25 @@ export function renderDigest(
   return lines.join('\n')
 }
 
-async function sendWithRetry(bot: Bot, chatId: number, text: string, attempt = 1): Promise<void> {
-  try {
-    await bot.api.sendMessage(chatId, text, {parse_mode: 'HTML'})
-  } catch (e) {
-    if (e instanceof GrammyError && e.error_code === 429 && attempt <= 3) {
-      const retry = (e.parameters?.retry_after ?? 1) * 1000 * 2 ** (attempt - 1)
-      await new Promise((r) => setTimeout(r, retry))
-      return sendWithRetry(bot, chatId, text, attempt + 1)
+/** Human-readable "here is why your VPN stopped" line for a blocked user. */
+export function renderBlockNotice(reason: AccessReason | null, selfHealsAt: string | null): string {
+  switch (reason) {
+    case 'traffic_limit': {
+      const lines = ['🚦 Трафик закончился — VPN сейчас не работает.']
+      if (selfHealsAt) {
+        const days = daysUntil(selfHealsAt)
+        lines.push(
+          days !== null && days >= 0
+            ? `Лимит обнулится ${formatRuDate(selfHealsAt)} (через ${days} ${pluralDays(days)}), и доступ вернётся сам.`
+            : `Лимит обнулится ${formatRuDate(selfHealsAt)}, и доступ вернётся сам.`,
+        )
+      }
+      lines.push('Нужно раньше — напиши, подниму лимит.')
+      return lines.join('\n')
     }
-    throw e
+    case 'expired':
+      return '⌛️ Срок доступа закончился — VPN сейчас не работает.\nНапиши мне, продлим.'
+    default:
+      return '🔌 Доступ сейчас отключён.\nНапиши мне, разберёмся.'
   }
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
-const MONTHS_RU = [
-  'января',
-  'февраля',
-  'марта',
-  'апреля',
-  'мая',
-  'июня',
-  'июля',
-  'августа',
-  'сентября',
-  'октября',
-  'ноября',
-  'декабря',
-]
-
-function formatRuDate(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getUTCDate()} ${MONTHS_RU[d.getUTCMonth()]}`
-}
-
-function pluralDays(n: number): string {
-  const mod10 = n % 10
-  const mod100 = n % 100
-  if (mod10 === 1 && mod100 !== 11) return 'день'
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'дня'
-  return 'дней'
 }

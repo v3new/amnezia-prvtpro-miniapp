@@ -115,9 +115,12 @@ function AppInner({onReady}: AppProps) {
           return
         }
         const a = await authenticate(initData)
-        const [opts, conns] = await Promise.all([getOptions(), listConnections()])
+        // Commit the profile before fetching the rest: it already carries the
+        // access state, so a later failure never costs us the ability to say
+        // what is going on.
         setAuth(a)
         setProfile(a.profile)
+        const [opts, conns] = await Promise.all([getOptions(), listConnections()])
         setOptions(opts)
         setConnections(conns)
         void refreshFreshness(setProfile, setConnections)

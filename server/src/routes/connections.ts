@@ -18,7 +18,13 @@ import {
   validateDescription,
 } from '../lib/naming.ts'
 import type {PanelClient} from '../panel/client.ts'
-import {type AppVariables, activePanelUserMiddleware, authMiddleware, getSession} from './middleware.ts'
+import {
+  type AppVariables,
+  activePanelUserMiddleware,
+  authMiddleware,
+  getSession,
+  requirePanelUser,
+} from './middleware.ts'
 
 const CreateBodySchema = z.object({
   device: z.enum(DEVICE_SLUGS),
@@ -43,7 +49,11 @@ const ONLINE_WINDOW_MS = 5 * 60_000
 export function createConnectionsRouter(env: Env, panel: PanelClient) {
   const app = new Hono<{Variables: AppVariables}>()
   app.use('*', authMiddleware(env))
-  app.use('*', activePanelUserMiddleware(panel))
+  // A blocked user keeps the whole cabinet read-only — profile, list, configs —
+  // plus housekeeping on what they already have (rename-free delete, toggle).
+  // Only handing out *new* access is gated.
+  app.use('*', requirePanelUser(panel))
+  const requireActive = activePanelUserMiddleware(panel)
 
   app.get('/connections', async (c) => {
     const session = getSession(c)
@@ -84,7 +94,7 @@ export function createConnectionsRouter(env: Env, panel: PanelClient) {
     )
   })
 
-  app.post('/connections', async (c) => {
+  app.post('/connections', requireActive, async (c) => {
     const session = getSession(c)
     const body = await c.req.json().catch(() => null)
     const parsed = CreateBodySchema.safeParse(body)

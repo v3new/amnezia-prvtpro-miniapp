@@ -1,5 +1,13 @@
 import {z} from 'zod'
 
+export const AccessSchema = z.object({
+  status: z.enum(['active', 'warning', 'blocked']),
+  reason: z.enum(['traffic_limit', 'expired', 'admin']).nullable(),
+  self_heals_at: z.string().nullable(),
+})
+export type Access = z.infer<typeof AccessSchema>
+export type AccessReason = NonNullable<Access['reason']>
+
 export const ProfileSchema = z.object({
   username: z.string(),
   first_name: z.string(),
@@ -16,6 +24,7 @@ export const ProfileSchema = z.object({
     next_reset_at: z.string().nullable(),
     percent_used: z.number(),
   }),
+  access: AccessSchema,
 })
 export type Profile = z.infer<typeof ProfileSchema>
 

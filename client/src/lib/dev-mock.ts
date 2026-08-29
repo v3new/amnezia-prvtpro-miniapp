@@ -4,6 +4,8 @@
  * В production-бандле этот модуль не импортируется.
  */
 
+import type {Access} from '../api/types.ts'
+
 interface ResponseJson {
   ok: boolean
   data?: unknown
@@ -14,7 +16,18 @@ function res(data: unknown): ResponseJson {
   return {ok: true, data}
 }
 
-const PROFILE = {
+/**
+ * Dev switch for the access states: `?dev&access=limit|warning|expired|admin`.
+ * Without it the profile is a healthy one.
+ */
+type AccessScenario = 'limit' | 'warning' | 'expired' | 'admin'
+
+function accessScenario(): AccessScenario | null {
+  const v = new URLSearchParams(window.location.search).get('access')
+  return v === 'limit' || v === 'warning' || v === 'expired' || v === 'admin' ? v : null
+}
+
+const BASE_PROFILE = {
   username: 'v3new',
   first_name: 'Sasha',
   language_code: 'ru',
@@ -30,7 +43,46 @@ const PROFILE = {
     next_reset_at: '2026-06-01T00:00:00',
     percent_used: 24,
   },
+  access: {status: 'active', reason: null, self_heals_at: null} as Access,
 }
+
+function buildMockProfile(): typeof BASE_PROFILE {
+  const scenario = accessScenario()
+  if (!scenario) return BASE_PROFILE
+  const reset = BASE_PROFILE.traffic.next_reset_at
+
+  if (scenario === 'warning') {
+    return {
+      ...BASE_PROFILE,
+      traffic: {...BASE_PROFILE.traffic, used_bytes: 45_097_156_608, percent_used: 84},
+      access: {status: 'warning', reason: 'traffic_limit', self_heals_at: reset},
+    }
+  }
+  if (scenario === 'limit') {
+    return {
+      ...BASE_PROFILE,
+      enabled: false,
+      traffic: {...BASE_PROFILE.traffic, used_bytes: BASE_PROFILE.traffic.limit_bytes, percent_used: 100},
+      access: {status: 'blocked', reason: 'traffic_limit', self_heals_at: reset},
+    }
+  }
+  if (scenario === 'expired') {
+    return {
+      ...BASE_PROFILE,
+      enabled: false,
+      expiration_date: '2026-01-31T23:59:59',
+      expires_in_days: -30,
+      access: {status: 'blocked', reason: 'expired', self_heals_at: null},
+    }
+  }
+  return {
+    ...BASE_PROFILE,
+    enabled: false,
+    access: {status: 'blocked', reason: 'admin', self_heals_at: null},
+  }
+}
+
+const PROFILE = buildMockProfile()
 
 const OPTIONS = {
   devices: [
@@ -203,6 +255,15 @@ export function installDevMock(): void {
 
     if (path === '/api/v1/auth') return json(res({token: 'mock-jwt', expires_in: 86400, profile: PROFILE}))
     if (path === '/api/v1/options') return json(res(OPTIONS))
+    if (path === '/api/v1/profile')
+      return json(
+        res({
+          profile: PROFILE,
+          cached_at: new Date().toISOString(),
+          is_stale: false,
+          refresh_in_progress: false,
+        }),
+      )
     if (path === '/api/v1/server/status')
       return json(
         res({

@@ -3,6 +3,7 @@ import {useTranslation} from 'react-i18next'
 import {Link} from 'react-router-dom'
 import {ApiError, getProfile, listConnections} from '../api/client.ts'
 import type {AppContext} from '../app.tsx'
+import {AccessBanner} from '../components/access-banner.tsx'
 import {Button, ButtonIcon} from '../components/button.tsx'
 import {ConnectionCard} from '../components/connection-card.tsx'
 import {PlusIcon} from '../components/icons.tsx'
@@ -38,7 +39,7 @@ export function HomePage({ctx}: {ctx: AppContext}) {
   if (error && connections.length === 0) return <ErrorView msg={error} />
 
   const {profile} = ctx
-  const limitReached = profile.traffic.limit_bytes > 0 && profile.traffic.used_bytes >= profile.traffic.limit_bytes
+  const blocked = profile.access.status === 'blocked'
   const expiresSoon = profile.expires_in_days !== null && profile.expires_in_days >= 0 && profile.expires_in_days <= 7
   const maxSlots = Math.max(limit, connections.length)
   const atLimit = connections.length >= maxSlots
@@ -48,11 +49,13 @@ export function HomePage({ctx}: {ctx: AppContext}) {
     <Page>
       <h1 className="text-xl font-semibold">{t(greetingKey(), {name: profile.first_name})}</h1>
 
+      <AccessBanner profile={profile} options={ctx.options} />
+
       <TrafficCard traffic={profile.traffic} />
 
       <ServerStatusBadge status={status} clientPingMs={clientPing} />
 
-      {profile.expiration_date && (
+      {profile.expiration_date && profile.access.reason !== 'expired' && (
         <div
           className={`rounded-xl p-3 text-sm ${expiresSoon ? 'bg-amber-500/10 text-amber-700' : 'bg-tg-secondaryBg text-tg-hint'}`}
         >
@@ -71,25 +74,21 @@ export function HomePage({ctx}: {ctx: AppContext}) {
         </div>
       )}
 
-      {limitReached && (
-        <Link to="/limit" className="block rounded-xl bg-rose-500/10 p-3 text-center text-sm text-rose-600">
-          {t('home.limitExceededOpen')}
-        </Link>
-      )}
-
       <section className="space-y-2">
         <h2 className="text-sm font-medium text-tg-hint">
           {t('home.connections', {current: connections.length, max: maxSlots})}
         </h2>
         {connections.length === 0 && (
-          <div className="rounded-2xl bg-tg-secondaryBg p-4 text-sm text-tg-hint">{t('home.empty')}</div>
+          <div className="rounded-2xl bg-tg-secondaryBg p-4 text-sm text-tg-hint">
+            {t(blocked ? 'home.emptyBlocked' : 'home.empty')}
+          </div>
         )}
         {sortedConnections.map((c) => (
           <ConnectionCard key={c.id} connection={c} options={ctx.options} />
         ))}
       </section>
 
-      {!atLimit && (
+      {!atLimit && !blocked && (
         <Link
           to="/new"
           onClick={hapticLight}

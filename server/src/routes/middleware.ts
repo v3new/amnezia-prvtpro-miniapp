@@ -2,6 +2,7 @@ import type {Context, MiddlewareHandler} from 'hono'
 import {err} from '../action-result.ts'
 import {type SessionClaims, verifySession} from '../auth.ts'
 import type {Env} from '../env.ts'
+import {computeAccess, computeNextReset} from '../lib/profile.ts'
 import type {PanelClient} from '../panel/client.ts'
 
 export interface AppVariables {
@@ -25,6 +26,28 @@ export function authMiddleware(env: Env): MiddlewareHandler<{Variables: AppVaria
   }
 }
 
+/**
+ * Read-only gate: the panel user must exist, but may be switched off.
+ *
+ * A blocked user still gets their profile, options and connection list — that
+ * is exactly the data that explains *why* they are blocked. Denying it is what
+ * turned "you ran out of traffic" into an unexplained lock screen.
+ */
+export function requirePanelUser(panel: PanelClient): MiddlewareHandler<{Variables: AppVariables}> {
+  return async (c, next) => {
+    const session = getSession(c)
+    const user = await panel.findUserById(session.panel_user_id)
+    if (!user) {
+      return c.json(err('user_not_provisioned', 'Доступ не настроен. Напиши администратору.'), 403)
+    }
+    await next()
+  }
+}
+
+/**
+ * Gate for handing out new access, reporting *which* wall was hit so the client
+ * can say something better than "access denied".
+ */
 export function activePanelUserMiddleware(panel: PanelClient): MiddlewareHandler<{Variables: AppVariables}> {
   return async (c, next) => {
     const session = getSession(c)
@@ -33,7 +56,18 @@ export function activePanelUserMiddleware(panel: PanelClient): MiddlewareHandler
       return c.json(err('user_not_provisioned', 'Доступ не настроен. Напиши администратору.'), 403)
     }
     if (!user.enabled) {
-      return c.json(err('user_disabled', 'Доступ отключён. Напиши администратору.'), 403)
+      const access = computeAccess(user, computeNextReset(user.last_reset_at, user.traffic_reset_strategy ?? 'never'))
+      switch (access.reason) {
+        case 'traffic_limit':
+          return c.json(
+            err('traffic_limit_reached', 'Лимит трафика исчерпан — новые подключения будут доступны после сброса.'),
+            403,
+          )
+        case 'expired':
+          return c.json(err('subscription_expired', 'Срок доступа закончился. Напиши администратору.'), 403)
+        default:
+          return c.json(err('user_disabled', 'Доступ отключён. Напиши администратору.'), 403)
+      }
     }
     await next()
   }

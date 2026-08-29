@@ -4,7 +4,7 @@ import type {Env} from '../env.ts'
 import {DEVICES} from '../lib/devices.ts'
 import {DESCRIPTION_MAX, DESCRIPTION_MIN} from '../lib/naming.ts'
 import type {PanelClient} from '../panel/client.ts'
-import {type AppVariables, activePanelUserMiddleware, authMiddleware} from './middleware.ts'
+import {type AppVariables, authMiddleware, requirePanelUser} from './middleware.ts'
 
 interface ProtocolDef {
   slug: string
@@ -35,7 +35,7 @@ const ALL_PROTOCOLS: Record<string, ProtocolDef> = {
 export function createOptionsRouter(env: Env, panel: PanelClient) {
   const app = new Hono<{Variables: AppVariables}>()
   app.use('*', authMiddleware(env))
-  app.use('*', activePanelUserMiddleware(panel))
+  app.use('*', requirePanelUser(panel))
 
   const protocols = env.ENABLED_PROTOCOLS.map((slug) => ALL_PROTOCOLS[slug]).filter(
     (p): p is ProtocolDef => p !== undefined,
