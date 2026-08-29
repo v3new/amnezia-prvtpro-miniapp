@@ -14,7 +14,7 @@
     "dev:client": "bun run --cwd client dev",
     "format": "biome format --write .",
     "check": "biome check --write .",
-    "typecheck": "bunx tsc --noEmit -p server/tsconfig.json && bunx tsc --noEmit -p client/tsconfig.json",
+    "typecheck": "bunx tsc --noEmit -p server/tsconfig.json && bunx tsc --noEmit -p client/tsconfig.json && bunx tsc --noEmit -p client/tsconfig.test.json",
     "test": "bun test"
   },
   "dependencies": {

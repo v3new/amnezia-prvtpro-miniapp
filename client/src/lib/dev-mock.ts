@@ -100,12 +100,16 @@ const OPTIONS = {
   ],
   protocols: [
     {
-      slug: 'awg2',
-      label: 'AmneziaWG 2.0',
+      slug: 'awg3',
+      label: 'AmneziaWG 3.1',
       recommended_for: ['iphone', 'ipad', 'android', 'android_tablet', 'mac', 'windows', 'other'],
+      legacy: false,
     },
-    {slug: 'wireguard', label: 'WireGuard', recommended_for: ['router']},
-    {slug: 'xray', label: 'Xray (VLESS-Reality)', recommended_for: ['linux', 'appletv', 'androidtv']},
+    {slug: 'wireguard', label: 'WireGuard', recommended_for: ['router'], legacy: false},
+    {slug: 'xray', label: 'Xray (VLESS-Reality)', recommended_for: ['linux', 'appletv', 'androidtv'], legacy: false},
+    // Заводить нельзя — остаются ради инструкций к уже выданным конфигам.
+    {slug: 'awg2', label: 'AmneziaWG 2.0', recommended_for: [], legacy: true},
+    {slug: 'awg_legacy', label: 'AmneziaWG (legacy)', recommended_for: [], legacy: true},
   ],
   admin_contact_url: 'https://t.me/admin',
   donate_url: 'https://example.com/donate',
@@ -119,11 +123,12 @@ const OPTIONS = {
 const CONNECTIONS = [
   {
     id: 'c1',
-    name: 'v3new:iphone:wg2 (личный)',
+    name: 'v3new:iphone:wg3 (личный)',
     description: 'личный',
     device: 'iphone',
-    protocol: 'awg2',
-    protocol_label: 'AmneziaWG 2.0',
+    protocol: 'awg3',
+    protocol_label: 'AmneziaWG 3.1',
+    legacy: false,
     created_at: '2026-04-10T18:22:00',
     last_bytes: 12_245_678_000,
     bytes_received: 9_245_678_000,
@@ -139,6 +144,7 @@ const CONNECTIONS = [
     device: 'mac',
     protocol: 'awg2',
     protocol_label: 'AmneziaWG 2.0',
+    legacy: true,
     created_at: '2026-03-01T10:00:00',
     last_bytes: 5_200_000_000,
     bytes_received: 4_000_000_000,
@@ -154,6 +160,7 @@ const CONNECTIONS = [
     device: 'appletv',
     protocol: 'awg2',
     protocol_label: 'AmneziaWG 2.0',
+    legacy: true,
     created_at: '2026-02-01T10:00:00',
     last_bytes: 2_100_000_000,
     bytes_received: 1_800_000_000,
@@ -166,7 +173,7 @@ const CONNECTIONS = [
 
 const MOCK_WG_CONFIG = {
   id: 'c1',
-  name: 'v3new:iphone:wg2 (личный)',
+  name: 'v3new:iphone:wg3 (личный)',
   description: 'личный',
   config: '[Interface]\nPrivateKey=AAAA...\nAddress=10.0.0.2/32\n[Peer]\nPublicKey=BBBB...',
   vpn_link: 'vpn://demo-link',
@@ -190,18 +197,18 @@ function mockConfigFor(protocol: string, device: string, description: string) {
 }
 
 function parseCreateBody(body: BodyInit | null | undefined): {device: string; protocol: string; description: string} {
-  if (typeof body !== 'string') return {device: 'iphone', protocol: 'awg2', description: 'личный'}
+  if (typeof body !== 'string') return {device: 'iphone', protocol: 'awg3', description: 'личный'}
   let parsed: unknown
   try {
     parsed = JSON.parse(body)
   } catch {
-    return {device: 'iphone', protocol: 'awg2', description: 'личный'}
+    return {device: 'iphone', protocol: 'awg3', description: 'личный'}
   }
-  if (!parsed || typeof parsed !== 'object') return {device: 'iphone', protocol: 'awg2', description: 'личный'}
+  if (!parsed || typeof parsed !== 'object') return {device: 'iphone', protocol: 'awg3', description: 'личный'}
   const obj = parsed as Record<string, unknown>
   return {
     device: typeof obj.device === 'string' ? obj.device : 'iphone',
-    protocol: typeof obj.protocol === 'string' ? obj.protocol : 'awg2',
+    protocol: typeof obj.protocol === 'string' ? obj.protocol : 'awg3',
     description: typeof obj.description === 'string' ? obj.description : 'личный',
   }
 }
@@ -270,7 +277,7 @@ export function installDevMock(): void {
           online: true,
           ping_ms: 18,
           uptime_seconds: 1_200_000,
-          protocols_available: ['awg2', 'xray', 'wireguard'],
+          protocols_available: ['awg3', 'xray', 'wireguard'],
         }),
       )
     if (path === '/api/v1/connections' && method === 'GET')

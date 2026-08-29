@@ -50,6 +50,7 @@ export const ConnectionSchema = z.object({
   device: z.string(),
   protocol: z.string(),
   protocol_label: z.string(),
+  legacy: z.boolean().default(false),
   created_at: z.string().nullable().optional(),
   last_bytes: z.number(),
   bytes_received: z.number().default(0),
@@ -105,7 +106,14 @@ export const OptionsSchema = z.object({
       name_examples: z.array(z.string()).default([]),
     }),
   ),
-  protocols: z.array(z.object({slug: z.string(), label: z.string(), recommended_for: z.array(z.string())})),
+  protocols: z.array(
+    z.object({
+      slug: z.string(),
+      label: z.string(),
+      recommended_for: z.array(z.string()),
+      legacy: z.boolean().default(false),
+    }),
+  ),
   admin_contact_url: z.string(),
   donate_url: z.string(),
   vpn_server_host: z.string().nullable().default(null),

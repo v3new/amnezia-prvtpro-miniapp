@@ -31,7 +31,7 @@ async function main() {
     baseUrl: env.PANEL_BASE_URL,
     token: env.PANEL_API_TOKEN,
     serverId: env.PANEL_SERVER_ID,
-    protocols: env.ENABLED_PROTOCOLS,
+    protocols: [...new Set([...env.ENABLED_PROTOCOLS, ...env.LEGACY_PROTOCOLS])],
   })
 
   const app = new Hono()

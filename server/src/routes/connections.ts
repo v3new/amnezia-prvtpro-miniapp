@@ -42,7 +42,7 @@ const DownloadUrlBodySchema = z.object({
 // via URI/clipboard. Download is hidden in UI; the server still rejects to be
 // explicit if someone calls the endpoint directly.
 const PROTOCOLS_WITHOUT_FILE = new Set(['xray'])
-const PROTOCOLS_WG_FAMILY = new Set(['awg2', 'awg', 'awg_legacy', 'wireguard'])
+const PROTOCOLS_WG_FAMILY = new Set(['awg3', 'awg2', 'awg', 'awg_legacy', 'wireguard'])
 
 const ONLINE_WINDOW_MS = 5 * 60_000
 
@@ -72,6 +72,9 @@ export function createConnectionsRouter(env: Env, panel: PanelClient) {
         device,
         protocol: conn.protocol,
         protocol_label: PROTO_LABEL[conn.protocol] ?? conn.protocol,
+        // Подключение живо и работает, но на протоколе, который мы больше не
+        // выдаём — клиент рисует пометку «нужна миграция».
+        legacy: env.LEGACY_PROTOCOLS.includes(conn.protocol),
         created_at: conn.created_at,
         last_bytes: conn.last_bytes,
         bytes_received: conn.bytes_received,
@@ -104,6 +107,15 @@ export function createConnectionsRouter(env: Env, panel: PanelClient) {
       return c.json(err('bad_request', issue?.message ?? 'Bad request'), 400)
     }
     if (!env.ENABLED_PROTOCOLS.includes(parsed.data.protocol)) {
+      if (env.LEGACY_PROTOCOLS.includes(parsed.data.protocol)) {
+        return c.json(
+          err(
+            'protocol_retired',
+            `${PROTO_LABEL[parsed.data.protocol] ?? parsed.data.protocol} больше не создаётся. Создай подключение на актуальном протоколе.`,
+          ),
+          400,
+        )
+      }
       return c.json(err('protocol_invalid', 'Этот протокол не включён'), 400)
     }
     const descCheck = validateDescription(parsed.data.description)

@@ -11,7 +11,9 @@ export function InstructionsPage({ctx}: {ctx: AppContext}) {
   const protocols = ctx.options.protocols
   const devices = ctx.options.devices
 
-  const [protocol, setProtocol] = useState<string>(() => protocols[0]?.slug ?? 'awg2')
+  const [protocol, setProtocol] = useState<string>(
+    () => protocols.find((p) => !p.legacy)?.slug ?? protocols[0]?.slug ?? 'awg3',
+  )
   const [device, setDevice] = useState<string>(() => guessDevice())
 
   const sortedDevices = useMemo(() => {
@@ -41,9 +43,12 @@ export function InstructionsPage({ctx}: {ctx: AppContext}) {
               }}
               className={`rounded-xl p-2 text-xs ${
                 protocol === p.slug ? 'bg-tg-button text-tg-buttonText' : 'bg-tg-secondaryBg text-tg-text'
-              }`}
+              } ${p.legacy && protocol !== p.slug ? 'opacity-60' : ''}`}
             >
               {p.label}
+              {p.legacy && (
+                <span className="mt-0.5 block text-[9px] leading-none opacity-70">{t('migration.tag')}</span>
+              )}
             </button>
           ))}
         </div>

@@ -1,5 +1,12 @@
 import {z} from 'zod'
 
+function splitList(v: string): string[] {
+  return v
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
 const EnvSchema = z
   .object({
     TG_BOT_TOKEN: z.string().min(1),
@@ -33,16 +40,9 @@ const EnvSchema = z
       .optional()
       .or(z.literal('').transform(() => undefined)),
 
-    DEFAULT_PROTOCOL: z.enum(['awg2', 'awg', 'awg_legacy', 'wireguard', 'xray']).default('awg2'),
-    ENABLED_PROTOCOLS: z
-      .string()
-      .default('awg2,xray,wireguard')
-      .transform((v) =>
-        v
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean),
-      ),
+    DEFAULT_PROTOCOL: z.enum(['awg3', 'awg2', 'awg', 'awg_legacy', 'wireguard', 'xray']).default('awg3'),
+    ENABLED_PROTOCOLS: z.string().default('awg3,xray,wireguard').transform(splitList),
+    LEGACY_PROTOCOLS: z.string().default('awg2,awg,awg_legacy').transform(splitList),
     MAX_CONNECTIONS_PER_USER: z.coerce.number().int().positive().default(6),
 
     DONATE_URL: z.string().url(),
@@ -51,12 +51,26 @@ const EnvSchema = z
     LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   })
   .superRefine((env, ctx) => {
-    if (env.TG_BOT_MODE !== 'webhook') return
-    if (!env.TG_WEBHOOK_SECRET) {
+    if (env.TG_BOT_MODE === 'webhook' && !env.TG_WEBHOOK_SECRET) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['TG_WEBHOOK_SECRET'],
         message: 'required when TG_BOT_MODE=webhook',
+      })
+    }
+    const overlap = env.ENABLED_PROTOCOLS.filter((p) => env.LEGACY_PROTOCOLS.includes(p))
+    if (overlap.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['LEGACY_PROTOCOLS'],
+        message: `overlaps ENABLED_PROTOCOLS: ${overlap.join(', ')}`,
+      })
+    }
+    if (!env.ENABLED_PROTOCOLS.includes(env.DEFAULT_PROTOCOL)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['DEFAULT_PROTOCOL'],
+        message: `not listed in ENABLED_PROTOCOLS (${env.ENABLED_PROTOCOLS.join(', ')})`,
       })
     }
   })

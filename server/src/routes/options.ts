@@ -10,12 +10,13 @@ interface ProtocolDef {
   slug: string
   label: string
   recommended_for: string[]
+  legacy: boolean
 }
 
-const ALL_PROTOCOLS: Record<string, ProtocolDef> = {
-  awg2: {
-    slug: 'awg2',
-    label: 'AmneziaWG 2.0',
+const CATALOGUE: Record<string, Omit<ProtocolDef, 'legacy'>> = {
+  awg3: {
+    slug: 'awg3',
+    label: 'AmneziaWG 3.1',
     recommended_for: ['iphone', 'ipad', 'android', 'android_tablet', 'mac', 'windows', 'other'],
   },
   xray: {
@@ -28,8 +29,16 @@ const ALL_PROTOCOLS: Record<string, ProtocolDef> = {
     label: 'WireGuard',
     recommended_for: ['router'],
   },
+  awg2: {slug: 'awg2', label: 'AmneziaWG 2.0', recommended_for: []},
   awg: {slug: 'awg', label: 'AmneziaWG', recommended_for: []},
   awg_legacy: {slug: 'awg_legacy', label: 'AmneziaWG (legacy)', recommended_for: []},
+}
+
+function resolve(slugs: readonly string[], legacy: boolean): ProtocolDef[] {
+  return slugs
+    .map((slug) => CATALOGUE[slug])
+    .filter((p): p is Omit<ProtocolDef, 'legacy'> => p !== undefined)
+    .map((p) => ({...p, recommended_for: legacy ? [] : p.recommended_for, legacy}))
 }
 
 export function createOptionsRouter(env: Env, panel: PanelClient) {
@@ -37,9 +46,7 @@ export function createOptionsRouter(env: Env, panel: PanelClient) {
   app.use('*', authMiddleware(env))
   app.use('*', requirePanelUser(panel))
 
-  const protocols = env.ENABLED_PROTOCOLS.map((slug) => ALL_PROTOCOLS[slug]).filter(
-    (p): p is ProtocolDef => p !== undefined,
-  )
+  const protocols = [...resolve(env.ENABLED_PROTOCOLS, false), ...resolve(env.LEGACY_PROTOCOLS, true)]
 
   app.get('/options', (c) =>
     c.json(

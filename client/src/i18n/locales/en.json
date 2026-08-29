@@ -90,7 +90,8 @@
     "protoDesc": {
       "awg2": "WireGuard with obfuscation. Good balance of speed and stealth.",
       "wireguard": "Plain WireGuard. Fastest and simplest, but blocked in stricter networks.",
-      "xray": "Disguised as regular TLS traffic. Most resistant to blocks, slightly slower than WireGuard."
+      "xray": "Disguised as regular TLS traffic. Most resistant to blocks, slightly slower than WireGuard.",
+      "awg3": "A new generation of speed and security. Header protection and randomized timings."
     }
   },
   "detail": {
@@ -146,5 +147,12 @@
     "taglineAccent": "has a name",
     "stillWorking": "Still working…",
     "slowConnection": "Slow connection"
+  },
+  "migration": {
+    "badge": "migration needed",
+    "tag": "outdated",
+    "title": "Time to update this connection",
+    "body": "{{protocol}} still works, but it's worth updating. There's no need to switch right now. When you have a moment: create a new connection, check that it connects, then delete this one.",
+    "cta": "Create a new connection"
   }
 }

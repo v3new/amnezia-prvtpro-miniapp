@@ -1,4 +1,5 @@
 export const PROTO_SHORT: Record<string, string> = {
+  awg3: 'wg3',
   awg2: 'wg2',
   awg: 'wg-awg',
   awg_legacy: 'wg-legacy',
@@ -7,6 +8,7 @@ export const PROTO_SHORT: Record<string, string> = {
 }
 
 export const PROTO_LABEL: Record<string, string> = {
+  awg3: 'AmneziaWG 3.1',
   awg2: 'AmneziaWG 2.0',
   awg: 'AmneziaWG',
   awg_legacy: 'AmneziaWG (legacy)',

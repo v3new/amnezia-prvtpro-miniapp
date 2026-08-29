@@ -2,6 +2,8 @@ import {describe, expect, test} from 'bun:test'
 import {
   buildConnectionName,
   normalizeDescription,
+  PROTO_LABEL,
+  PROTO_SHORT,
   parseDescription,
   parseDeviceFromName,
   validateDescription,
@@ -9,8 +11,23 @@ import {
 
 describe('naming', () => {
   test('buildConnectionName uses proto short', () => {
+    expect(buildConnectionName('v3new', 'iphone', 'awg3', 'личный')).toBe('v3new:iphone:wg3 (личный)')
     expect(buildConnectionName('v3new', 'iphone', 'awg2', 'личный')).toBe('v3new:iphone:wg2 (личный)')
     expect(buildConnectionName('v3new', 'router', 'wireguard', 'дача')).toBe('v3new:router:wg (дача)')
+  })
+
+  test('every known protocol has a distinct short and a label', () => {
+    const shorts = Object.values(PROTO_SHORT)
+    expect(new Set(shorts).size).toBe(shorts.length)
+    for (const slug of Object.keys(PROTO_SHORT)) {
+      expect(PROTO_LABEL[slug]).toBeString()
+    }
+  })
+
+  test('names of retired protocols still parse — old connections stay readable', () => {
+    const name = buildConnectionName('v3new', 'mac', 'awg_legacy', 'работа')
+    expect(parseDescription(name)).toBe('работа')
+    expect(parseDeviceFromName(name)).toBe('mac')
   })
 
   test('parseDescription extracts description', () => {

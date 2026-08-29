@@ -106,6 +106,21 @@ export function ConnectionDetailPage({ctx}: {ctx: AppContext}) {
           <TrashIcon className="size-4" />
         </button>
       </div>
+      {meta.legacy && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
+          <div className="text-sm font-medium text-amber-700 dark:text-amber-300">{t('migration.title')}</div>
+          <p className="mt-1 text-xs leading-relaxed text-amber-800/80 dark:text-amber-200/80">
+            {t('migration.body', {protocol: meta.protocol_label})}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/new')}
+            className="mt-3 w-full rounded-xl bg-amber-500 px-3 py-2 text-sm font-medium text-white transition active:scale-[0.98]"
+          >
+            {t('migration.cta')}
+          </button>
+        </div>
+      )}
 
       {/* Traffic strip */}
       <div className="grid grid-cols-2 gap-2">

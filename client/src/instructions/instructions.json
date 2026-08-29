@@ -1,6 +1,325 @@
 {
   "$schema_version": 2,
-  "_notes": "Каждая запись — это [protocol_slug][device_slug]. protocol_slug совпадает со slug панели/визарда (awg2, wireguard, xray). flow.id ∈ {qr, link_qr, deeplink, link_paste, config_file, config_clipboard, router_manual}. verified=false помечает связки, где UX не подтверждён живым тестом",
+  "_notes": "Каждая запись — это [protocol_slug][device_slug]. protocol_slug совпадает со slug панели/визарда (awg3, wireguard, xray; awg2 выведен из обращения и остаётся только для уже выданных конфигов). flow.id ∈ {qr, link_qr, deeplink, link_paste, config_file, config_clipboard, router_manual}. verified=false помечает связки, где UX не подтверждён живым тестом",
+  "awg3": {
+    "iphone": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "AmneziaWG",
+        "store_url": "https://apps.apple.com/app/amneziawg/id6478942365",
+        "store_label": "App Store",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://apps.apple.com/app/amnezia-vpn/id1600529900"
+        }
+      ],
+      "default_flow": "qr",
+      "flows": [
+        {
+          "id": "qr",
+          "title": "Сканировать QR",
+          "steps": [
+            "Установи AmneziaWG из App Store по кнопке выше и обнови до последней версии — 3.1 понимают только свежие клиенты",
+            "Открой этот QR-код на другом экране",
+            "В AmneziaWG нажми «+» → «Создать из QR-кода»",
+            "Наведи камеру iPhone на QR-код",
+            "Разреши VPN-профиль и включи подключение"
+          ]
+        },
+        {
+          "id": "config_file",
+          "title": "Через файл .conf",
+          "steps": [
+            "Установи AmneziaWG из App Store по кнопке выше и обнови до последней версии — 3.1 понимают только свежие клиенты",
+            "Нажми «Скачать .conf» и сохрани файл",
+            "В AmneziaWG нажми «+» → «Импорт из файла»",
+            "Выбери скачанный файл и включи подключение"
+          ]
+        }
+      ]
+    },
+    "ipad": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "AmneziaWG",
+        "store_url": "https://apps.apple.com/app/amneziawg/id6478942365",
+        "store_label": "App Store",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://apps.apple.com/app/amnezia-vpn/id1600529900"
+        }
+      ],
+      "default_flow": "qr",
+      "flows": [
+        {
+          "id": "qr",
+          "title": "Сканировать QR",
+          "steps": [
+            "Установи AmneziaWG из App Store по кнопке выше и обнови до последней версии — 3.1 понимают только свежие клиенты",
+            "Открой этот QR-код на другом экране",
+            "В AmneziaWG нажми «+» → «Создать из QR-кода»",
+            "Наведи камеру iPad на QR-код",
+            "Разреши VPN-профиль и включи подключение"
+          ]
+        },
+        {
+          "id": "config_file",
+          "title": "Через файл .conf",
+          "steps": [
+            "Установи AmneziaWG из App Store по кнопке выше и обнови до последней версии — 3.1 понимают только свежие клиенты",
+            "Нажми «Скачать .conf» и сохрани файл",
+            "В AmneziaWG нажми «+» → «Импорт из файла»",
+            "Выбери скачанный файл и включи подключение"
+          ]
+        }
+      ]
+    },
+    "android": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "AmneziaWG",
+        "store_url": "https://play.google.com/store/apps/details?id=org.amnezia.awg",
+        "store_label": "Google Play",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://play.google.com/store/apps/details?id=org.amnezia.vpn"
+        }
+      ],
+      "default_flow": "qr",
+      "flows": [
+        {
+          "id": "qr",
+          "title": "Сканировать QR",
+          "steps": [
+            "Установи AmneziaWG из Google Play по кнопке выше и обнови до последней версии — 3.1 понимают только свежие клиенты",
+            "Открой этот QR-код на другом экране",
+            "В AmneziaWG нажми «+» → «Сканировать из QR-кода»",
+            "Наведи камеру телефона на QR-код",
+            "Разреши VPN-подключение и включи его"
+          ]
+        },
+        {
+          "id": "config_file",
+          "title": "Через файл .conf",
+          "steps": [
+            "Установи AmneziaWG из Google Play по кнопке выше и обнови до последней версии — 3.1 понимают только свежие клиенты",
+            "Нажми «Скачать .conf» и сохрани файл",
+            "В AmneziaWG нажми «+» → «Импорт из файла»",
+            "Выбери скачанный файл и включи подключение"
+          ]
+        }
+      ]
+    },
+    "android_tablet": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "AmneziaWG",
+        "store_url": "https://play.google.com/store/apps/details?id=org.amnezia.awg",
+        "store_label": "Google Play",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://play.google.com/store/apps/details?id=org.amnezia.vpn"
+        }
+      ],
+      "default_flow": "qr",
+      "flows": [
+        {
+          "id": "qr",
+          "title": "Сканировать QR",
+          "steps": [
+            "Установи AmneziaWG из Google Play по кнопке выше и обнови до последней версии — 3.1 понимают только свежие клиенты",
+            "Открой этот QR-код на другом экране",
+            "В AmneziaWG нажми «+» → «Сканировать из QR-кода»",
+            "Наведи камеру планшета на QR-код",
+            "Разреши VPN-подключение и включи его"
+          ]
+        },
+        {
+          "id": "config_file",
+          "title": "Через файл .conf",
+          "steps": [
+            "Установи AmneziaWG из Google Play по кнопке выше и обнови до последней версии — 3.1 понимают только свежие клиенты",
+            "Нажми «Скачать .conf» и сохрани файл",
+            "В AmneziaWG нажми «+» → «Импорт из файла»",
+            "Выбери скачанный файл и включи подключение"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "Amnezia VPN",
+        "store_url": "https://amnezia.org/ru/downloads",
+        "store_label": "amnezia.org",
+        "format": "vpn"
+      },
+      "alternative_apps": [
+        {
+          "name": "AmneziaWG",
+          "store_url": "https://apps.apple.com/app/amneziawg/id6478942365"
+        }
+      ],
+      "default_flow": "link_paste",
+      "flows": [
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Скачай Amnezia VPN для macOS по кнопке выше — нужна последняя версия, 3.1 понимают только свежие клиенты",
+            "Нажми «Скопировать ссылку» ниже",
+            "В Amnezia VPN нажми «+» и вставь ссылку в открывшееся поле «Insert key»",
+            "Нажми «Insert» и включи подключение"
+          ]
+        },
+        {
+          "id": "config_file",
+          "title": "Через файл .vpn",
+          "steps": [
+            "Скачай и установи последнюю версию Amnezia VPN по кнопке выше",
+            "Нажми «Скачать .vpn»",
+            "В Amnezia VPN нажми «+» и выбери «File with connection settings»",
+            "В Amnezia VPN включи подключение"
+          ]
+        }
+      ]
+    },
+    "windows": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "Amnezia VPN",
+        "store_url": "https://amnezia.org/ru/downloads",
+        "store_label": "amnezia.org",
+        "format": "vpn"
+      },
+      "alternative_apps": [
+        {
+          "name": "AmneziaWG Client",
+          "store_url": "https://github.com/amnezia-vpn/amneziawg-windows-client/releases/latest"
+        }
+      ],
+      "default_flow": "link_paste",
+      "flows": [
+        {
+          "id": "link_paste",
+          "title": "Скопировать ссылку",
+          "steps": [
+            "Скачай Amnezia VPN для Windows по кнопке выше — нужна последняя версия, 3.1 понимают только свежие клиенты",
+            "Нажми «Скопировать ссылку» ниже",
+            "В Amnezia VPN нажми «+» и вставь ссылку в открывшееся поле «Insert key»",
+            "Нажми «Insert» и включи подключение"
+          ]
+        },
+        {
+          "id": "config_file",
+          "title": "Через файл .vpn",
+          "steps": [
+            "Скачай и установи последнюю версию Amnezia VPN по кнопке выше",
+            "Нажми «Скачать .vpn»",
+            "В Amnezia VPN нажми «+» и выбери «File with connection settings»",
+            "В Amnezia VPN включи подключение"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "supported": true,
+      "verified": true,
+      "primary_app": {
+        "name": "amneziawg-tools",
+        "store_url": "https://github.com/amnezia-vpn/amneziawg-tools",
+        "store_label": "GitHub",
+        "format": "conf"
+      },
+      "alternative_apps": [
+        {
+          "name": "Amnezia VPN",
+          "store_url": "https://amnezia.org/downloads"
+        }
+      ],
+      "default_flow": "config_file",
+      "flows": [
+        {
+          "id": "config_file",
+          "title": "Через файл конфига и awg-quick",
+          "steps": [
+            "Собери amneziawg-tools и модуль ядра из свежих исходников по кнопке выше — версия должна поддерживать 3.1",
+            "На этой странице нажми «Скачать .conf»",
+            "Положи файл в /etc/amnezia/amneziawg/awg0.conf (нужны права root)",
+            "Подними интерфейс: sudo awg-quick up awg0",
+            "Если awg-quick ругается на неизвестный ключ — версия tools старая, обнови её",
+            "Чтобы стартовало само при загрузке: sudo systemctl enable awg-quick@awg0"
+          ]
+        }
+      ]
+    },
+    "appletv": {
+      "supported": false,
+      "fallback_protocol": "xray",
+      "fallback_reason": "Клиенты для этой платформы пока не понимают AmneziaWG 3.1 — в конфиге есть ключи, которые они не разбирают. Для Apple TV создай подключение по Xray — оно там работает"
+    },
+    "androidtv": {
+      "supported": false,
+      "fallback_protocol": "xray",
+      "fallback_reason": "Клиенты для этой платформы пока не понимают AmneziaWG 3.1 — в конфиге есть ключи, которые они не разбирают. Для Android TV создай подключение по Xray — оно там работает"
+    },
+    "router": {
+      "supported": false,
+      "fallback_protocol": "wireguard",
+      "fallback_reason": "AmneziaWG на роутер обычно не ставится. Создай для роутера соединение по WireGuard — оно подходит"
+    },
+    "other": {
+      "supported": true,
+      "verified": false,
+      "primary_app": {
+        "name": "AmneziaWG / Amnezia VPN",
+        "store_url": "https://amnezia.org/downloads",
+        "store_label": "amnezia.org",
+        "format": "conf"
+      },
+      "default_flow": "config_file",
+      "flows": [
+        {
+          "id": "config_file",
+          "title": "Универсальный путь — файл конфига",
+          "steps": [
+            "Скачай последнюю версию AmneziaWG или Amnezia VPN под свою систему с amnezia.org",
+            "На этой странице нажми «Скачать .conf»",
+            "В приложении выбери импорт туннеля из файла и укажи .conf",
+            "Включи подключение. Если клиент ругается на неизвестные строки в конфиге — он ещё не умеет 3.1, обнови его"
+          ]
+        },
+        {
+          "id": "config_clipboard",
+          "title": "Через буфер обмена",
+          "steps": [
+            "Скачай свежий клиент AmneziaWG или Amnezia VPN",
+            "На этой странице под конфигом нажми «Скопировать»",
+            "В приложении выбери импорт из буфера обмена",
+            "Включи подключение"
+          ]
+        }
+      ]
+    }
+  },
   "awg2": {
     "iphone": {
       "supported": true,

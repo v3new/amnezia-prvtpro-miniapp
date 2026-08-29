@@ -32,7 +32,7 @@ const FORM_FACTORS: FormFactorDef[] = [
 ]
 
 const PROTO_DESC_KEY: Record<string, string> = {
-  awg2: 'wizard.protoDesc.awg2',
+  awg3: 'wizard.protoDesc.awg3',
   wireguard: 'wizard.protoDesc.wireguard',
   xray: 'wizard.protoDesc.xray',
 }
@@ -66,7 +66,12 @@ export function NewConnectionPage({ctx}: {ctx: AppContext}) {
 
   const currentForm = formFactor ? FORM_FACTORS.find((f) => f.id === formFactor) : null
   const needsOsStep = currentForm?.osOptions != null
-  const availableProtocols = device ? sortProtocols(ctx.options.protocols, device) : []
+  const availableProtocols = device
+    ? sortProtocols(
+        ctx.options.protocols.filter((p) => !p.legacy),
+        device,
+      )
+    : []
 
   const valid = useMemo(() => {
     if (!device || !protocol) return false
@@ -89,7 +94,8 @@ export function NewConnectionPage({ctx}: {ctx: AppContext}) {
     hapticLight()
     try {
       const created = await createConnection({device, protocol, description: name.trim()})
-      const label = ctx.options.protocols.find((p) => p.slug === protocol)?.label ?? protocol
+      const proto = ctx.options.protocols.find((p) => p.slug === protocol)
+      const label = proto?.label ?? protocol
       ctx.setConnections({
         ...ctx.connections,
         connections: [
@@ -101,6 +107,7 @@ export function NewConnectionPage({ctx}: {ctx: AppContext}) {
             device,
             protocol,
             protocol_label: label,
+            legacy: proto?.legacy ?? false,
             created_at: new Date().toISOString(),
             last_bytes: 0,
             bytes_received: 0,
@@ -296,10 +303,10 @@ export function NewConnectionPage({ctx}: {ctx: AppContext}) {
                   onClick={() => pickProtocol(p.slug)}
                   className="w-full rounded-xl bg-tg-secondaryBg p-3 text-left transition active:scale-[0.98]"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="font-medium">{p.label}</span>
                     {isRecommended && (
-                      <span className="rounded-full bg-tg-button px-2 py-0.5 text-[10px] text-tg-buttonText">
+                      <span className="shrink-0 rounded-full bg-tg-button px-2 py-0.5 text-[10px] text-tg-buttonText">
                         {t('wizard.recommended')}
                       </span>
                     )}
