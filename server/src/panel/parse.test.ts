@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'bun:test'
-import {parseHumanAgoToISO, parseHumanBytes} from './parse.ts'
+import {clientTraffic, parseHumanAgoToISO, parseHumanBytes} from './parse.ts'
 
 describe('parseHumanBytes', () => {
   test('parses common units', () => {
@@ -34,5 +34,40 @@ describe('parseHumanAgoToISO', () => {
     expect(parseHumanAgoToISO('never')).toBeNull()
     expect(parseHumanAgoToISO('')).toBeNull()
     expect(parseHumanAgoToISO(null)).toBeNull()
+  })
+})
+
+describe('clientTraffic', () => {
+  test('wg family: server-side counters are flipped to the client view', () => {
+    // `wg show` on the server: received = what the peer uploaded.
+    const t = clientTraffic('awg3', {dataReceivedBytes: 300, dataSentBytes: 9000})
+    expect(t).toEqual({download: 9000, upload: 300})
+    expect(clientTraffic('wireguard', {dataReceivedBytes: 1, dataSentBytes: 2}).download).toBe(2)
+  })
+
+  test('xray: stats are already client-side and stay put', () => {
+    // Xray statsquery: dataReceived carries the downlink.
+    expect(clientTraffic('xray', {dataReceivedBytes: 9000, dataSentBytes: 300})).toEqual({
+      download: 9000,
+      upload: 300,
+    })
+  })
+
+  test('falls back to the rounded strings when the panel sends no numbers', () => {
+    expect(clientTraffic('awg3', {dataReceived: '234.67 MiB', dataSent: '9.03 GiB'})).toEqual({
+      download: Math.round(9.03 * 1024 ** 3),
+      upload: Math.round(234.67 * 1024 ** 2),
+    })
+  })
+
+  test('prefers the exact numbers over the rounded strings', () => {
+    expect(
+      clientTraffic('awg3', {dataReceived: '1 GiB', dataSent: '1 GiB', dataReceivedBytes: 7, dataSentBytes: 9}),
+    ).toEqual({download: 9, upload: 7})
+  })
+
+  test('a peer that never transferred reads as zero', () => {
+    expect(clientTraffic('awg3', {})).toEqual({download: 0, upload: 0})
+    expect(clientTraffic('awg3', {dataReceived: '', dataSent: ''})).toEqual({download: 0, upload: 0})
   })
 })

@@ -2,7 +2,7 @@ import {LRUCache} from 'lru-cache'
 import {z} from 'zod'
 import {ApiError} from '../action-result.ts'
 import {type CacheEntry, type CacheSnapshot, snapshot} from './cache.ts'
-import {parseHumanAgoToISO, parseHumanBytes} from './parse.ts'
+import {clientTraffic, parseHumanAgoToISO} from './parse.ts'
 
 export const PanelUserSchema = z.object({
   id: z.string(),
@@ -56,6 +56,11 @@ const RawClientSchema = z.object({
       creationDate: z.string().optional(),
       dataReceived: z.string().optional(),
       dataSent: z.string().optional(),
+      // Exact counters; the strings above are the same numbers rounded to 2
+      // decimals. Anything but a number reads as absent, so we fall back to
+      // the string rather than to a silent zero.
+      dataReceivedBytes: z.number().optional().catch(undefined),
+      dataSentBytes: z.number().optional().catch(undefined),
       latestHandshake: z.string().optional(),
       enabled: z.boolean().optional(),
     })
@@ -421,12 +426,9 @@ export class PanelClient {
   ): PanelConnection | null {
     const name = raw.userData.clientName ?? ''
     if (!ownedBy(name, username)) return null
-    // Panel's dataReceived/dataSent come from `wg show` and are server-side:
-    //   dataReceived = bytes server received from peer  = client's upload
-    //   dataSent     = bytes server sent to peer        = client's download
-    // We expose them from the client's point of view, so swap here.
-    const upload = parseHumanBytes(raw.userData.dataReceived)
-    const download = parseHumanBytes(raw.userData.dataSent)
+    // Which counter is upload and which is download depends on the protocol —
+    // see clientTraffic(). We always expose the client's point of view.
+    const {download, upload} = clientTraffic(protocol, raw.userData)
     return {
       id: raw.clientId,
       user_id: userId,

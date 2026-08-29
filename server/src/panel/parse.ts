@@ -1,3 +1,5 @@
+import {WG_FAMILY_PROTOCOLS} from '../lib/naming.ts'
+
 const BYTE_UNITS: Record<string, number> = {
   B: 1,
   KB: 1024,
@@ -60,4 +62,30 @@ export function parseHumanAgoToISO(input: string | null | undefined, now = Date.
   }
   if (totalSec === 0) return null
   return new Date(now - totalSec * 1000).toISOString()
+}
+
+export interface RawTraffic {
+  dataReceived?: string
+  dataSent?: string
+  dataReceivedBytes?: number
+  dataSentBytes?: number
+}
+
+/**
+ * Re-read the panel's peer counters from the client's point of view.
+ *
+ * The panel labels both counters `dataReceived`/`dataSent` whatever the
+ * protocol, but whose side they were counted on differs:
+ *   • wg / awg — `wg show` counts on the server, so `received` is what the
+ *     server got from the peer, i.e. the client's *upload*.
+ *   • xray — the stats API is already client-facing: `dataReceived` carries
+ *     the downlink, i.e. the client's *download*.
+ * Only the WireGuard family is swapped. The numeric *Bytes fields are exact;
+ * the human strings are rounded to two decimals and serve as a fallback for
+ * panels that don't send the numbers.
+ */
+export function clientTraffic(protocol: string, raw: RawTraffic): {download: number; upload: number} {
+  const received = raw.dataReceivedBytes ?? parseHumanBytes(raw.dataReceived)
+  const sent = raw.dataSentBytes ?? parseHumanBytes(raw.dataSent)
+  return WG_FAMILY_PROTOCOLS.has(protocol) ? {download: sent, upload: received} : {download: received, upload: sent}
 }

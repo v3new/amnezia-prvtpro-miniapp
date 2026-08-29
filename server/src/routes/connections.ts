@@ -16,6 +16,7 @@ import {
   parseDescription,
   parseDeviceFromName,
   validateDescription,
+  WG_FAMILY_PROTOCOLS,
 } from '../lib/naming.ts'
 import {resolveConnectionLimit} from '../lib/user-tags.ts'
 import type {PanelClient} from '../panel/client.ts'
@@ -44,7 +45,6 @@ const DownloadUrlBodySchema = z.object({
 // via URI/clipboard. Download is hidden in UI; the server still rejects to be
 // explicit if someone calls the endpoint directly.
 const PROTOCOLS_WITHOUT_FILE = new Set(['xray'])
-const PROTOCOLS_WG_FAMILY = new Set(['awg3', 'awg2', 'awg', 'awg_legacy', 'wireguard'])
 
 const ONLINE_WINDOW_MS = 5 * 60_000
 
@@ -216,7 +216,7 @@ export function createConnectionsRouter(env: Env, panel: PanelClient) {
     if (PROTOCOLS_WITHOUT_FILE.has(conn.protocol)) {
       return c.json(err('download_unsupported', 'Этот протокол не поддерживает скачивание файла'), 400)
     }
-    if (format === 'conf' && !PROTOCOLS_WG_FAMILY.has(conn.protocol)) {
+    if (format === 'conf' && !WG_FAMILY_PROTOCOLS.has(conn.protocol)) {
       return c.json(err('format_incompatible', 'Формат .conf доступен только для WireGuard-семейства'), 400)
     }
 

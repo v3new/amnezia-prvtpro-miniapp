@@ -16,6 +16,10 @@ export const PROTO_LABEL: Record<string, string> = {
   xray: 'Xray (VLESS-Reality)',
 }
 
+// Everything that speaks WireGuard on the wire: same .conf container, same
+// server-side `wg show` counters. Xray is the odd one out on both counts.
+export const WG_FAMILY_PROTOCOLS = new Set(['awg3', 'awg2', 'awg', 'awg_legacy', 'wireguard'])
+
 export const DESCRIPTION_PATTERN = /^[\p{L}\p{N}\s\-_,.!?'"()]+$/u
 export const DESCRIPTION_MIN = 2
 export const DESCRIPTION_MAX = 30
