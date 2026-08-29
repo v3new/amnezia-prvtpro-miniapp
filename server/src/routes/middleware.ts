@@ -3,10 +3,11 @@ import {err} from '../action-result.ts'
 import {type SessionClaims, verifySession} from '../auth.ts'
 import type {Env} from '../env.ts'
 import {computeAccess, computeNextReset} from '../lib/profile.ts'
-import type {PanelClient} from '../panel/client.ts'
+import type {PanelClient, PanelUser} from '../panel/client.ts'
 
 export interface AppVariables {
   session: SessionClaims
+  panel_user: PanelUser
 }
 
 export function authMiddleware(env: Env): MiddlewareHandler<{Variables: AppVariables}> {
@@ -40,6 +41,7 @@ export function requirePanelUser(panel: PanelClient): MiddlewareHandler<{Variabl
     if (!user) {
       return c.json(err('user_not_provisioned', 'Доступ не настроен. Напиши администратору.'), 403)
     }
+    c.set('panel_user', user)
     await next()
   }
 }
@@ -75,4 +77,8 @@ export function activePanelUserMiddleware(panel: PanelClient): MiddlewareHandler
 
 export function getSession(c: Context<{Variables: AppVariables}>): SessionClaims {
   return c.get('session')
+}
+
+export function getPanelUser(c: Context<{Variables: AppVariables}>): PanelUser {
+  return c.get('panel_user')
 }

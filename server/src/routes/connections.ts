@@ -17,11 +17,13 @@ import {
   parseDeviceFromName,
   validateDescription,
 } from '../lib/naming.ts'
+import {resolveConnectionLimit} from '../lib/user-tags.ts'
 import type {PanelClient} from '../panel/client.ts'
 import {
   type AppVariables,
   activePanelUserMiddleware,
   authMiddleware,
+  getPanelUser,
   getSession,
   requirePanelUser,
 } from './middleware.ts'
@@ -59,6 +61,7 @@ export function createConnectionsRouter(env: Env, panel: PanelClient) {
     const session = getSession(c)
     const cached = await panel.getConnections(session.panel_user_id)
     const conns = cached.value
+    const limit = resolveConnectionLimit(getPanelUser(c), env.MAX_CONNECTIONS_PER_USER)
 
     const list = conns.map((conn) => {
       const description = parseDescription(conn.name) ?? ''
@@ -88,7 +91,7 @@ export function createConnectionsRouter(env: Env, panel: PanelClient) {
     return c.json(
       ok({
         connections: list,
-        limit: env.MAX_CONNECTIONS_PER_USER,
+        limit,
         used_slots: list.length,
         cached_at: cached.cached_at,
         is_stale: cached.is_stale,
@@ -123,15 +126,14 @@ export function createConnectionsRouter(env: Env, panel: PanelClient) {
       return c.json(err(descCheck.code, descCheck.message), 400)
     }
 
+    const limit = resolveConnectionLimit(getPanelUser(c), env.MAX_CONNECTIONS_PER_USER)
     const existing = await panel.listConnections(session.panel_user_id)
-    if (existing.length >= env.MAX_CONNECTIONS_PER_USER) {
-      return c.json(
-        err(
-          'max_connections_reached',
-          `Достигнут лимит соединений (${env.MAX_CONNECTIONS_PER_USER}). Удали неиспользуемые.`,
-        ),
-        409,
-      )
+    if (existing.length >= limit) {
+      const message =
+        limit === 0
+          ? 'Создание новых подключений отключено. Напиши администратору.'
+          : `Достигнут лимит соединений (${limit}). Удали неиспользуемые.`
+      return c.json(err('max_connections_reached', message), 409)
     }
     const normalized = normalizeDescription(descCheck.value)
     const collision = existing.some((cn) => {

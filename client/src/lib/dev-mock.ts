@@ -27,6 +27,20 @@ function accessScenario(): AccessScenario | null {
   return v === 'limit' || v === 'warning' || v === 'expired' || v === 'admin' ? v : null
 }
 
+/**
+ * Dev switch for a per-user slot override: `?dev&slots=12`.
+ * Mirrors what the server resolves from a `#slots=N` tag on the panel user.
+ * Without it the mock reports the stock limit.
+ */
+const DEFAULT_SLOTS = 6
+
+function slotsScenario(): number {
+  const raw = new URLSearchParams(window.location.search).get('slots')
+  if (raw === null) return DEFAULT_SLOTS
+  const n = Number(raw)
+  return Number.isInteger(n) && n >= 0 ? n : DEFAULT_SLOTS
+}
+
 const BASE_PROFILE = {
   username: 'v3new',
   first_name: 'Sasha',
@@ -281,7 +295,7 @@ export function installDevMock(): void {
         }),
       )
     if (path === '/api/v1/connections' && method === 'GET')
-      return json(res({connections: CONNECTIONS, limit: 6, used_slots: CONNECTIONS.length}))
+      return json(res({connections: CONNECTIONS, limit: slotsScenario(), used_slots: CONNECTIONS.length}))
     if (path === '/api/v1/connections' && method === 'POST') {
       const body = parseCreateBody(init?.body)
       return json(res(mockConfigFor(body.protocol, body.device, body.description)))

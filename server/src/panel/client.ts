@@ -13,6 +13,7 @@ export const PanelUserSchema = z.object({
     .optional()
     .transform((v) => (v == null || v === '' ? null : String(v))),
   enabled: z.boolean().default(true),
+  description: z.string().nullable().optional(),
   traffic_limit: z.number().default(0),
   traffic_used: z.number().default(0),
   traffic_total: z.number().default(0),
@@ -112,12 +113,7 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 15_000
 const DEFAULT_USERS_CACHE_TTL_MS = 3600 * 1000
 const USERS_PAGE_SIZE = 100
 const PROFILE_REFRESH_MS = 60 * 1000
-// Connection configs in our model are immutable — no "edit" action exists.
-// 30 days covers any realistic user session; explicit invalidation on
-// removeConnection keeps the cache honest if a connection is deleted.
 const CONFIG_CACHE_TTL_MS = 30 * 24 * 3600 * 1000
-// MAX_CONNECTIONS_PER_USER is 6 by default; 2000 covers ~330 active users
-// even if every slot is taken. Each config is a few KB → a few MB worst case.
 const CONFIG_CACHE_MAX = 2000
 const CONNECTIONS_CACHE_TTL_MS = 30 * 24 * 3600 * 1000
 const CONNECTIONS_CACHE_MAX = 2000
