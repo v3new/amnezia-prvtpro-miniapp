@@ -426,9 +426,8 @@ export class PanelClient {
   ): PanelConnection | null {
     const name = raw.userData.clientName ?? ''
     if (!ownedBy(name, username)) return null
-    // Which counter is upload and which is download depends on the protocol —
-    // see clientTraffic(). We always expose the client's point of view.
-    const {download, upload} = clientTraffic(protocol, raw.userData)
+    // Panel counters are server-side; clientTraffic() turns them around.
+    const {download, upload} = clientTraffic(raw.userData)
     return {
       id: raw.clientId,
       user_id: userId,

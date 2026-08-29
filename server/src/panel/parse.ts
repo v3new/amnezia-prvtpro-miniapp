@@ -1,5 +1,3 @@
-import {WG_FAMILY_PROTOCOLS} from '../lib/naming.ts'
-
 const BYTE_UNITS: Record<string, number> = {
   B: 1,
   KB: 1024,
@@ -72,20 +70,25 @@ export interface RawTraffic {
 }
 
 /**
- * Re-read the panel's peer counters from the client's point of view.
+ * Read the panel's peer counters from the client's point of view.
  *
- * The panel labels both counters `dataReceived`/`dataSent` whatever the
- * protocol, but whose side they were counted on differs:
- *   • wg / awg — `wg show` counts on the server, so `received` is what the
- *     server got from the peer, i.e. the client's *upload*.
- *   • xray — the stats API is already client-facing: `dataReceived` carries
- *     the downlink, i.e. the client's *download*.
- * Only the WireGuard family is swapped. The numeric *Bytes fields are exact;
- * the human strings are rounded to two decimals and serve as a fallback for
- * panels that don't send the numbers.
+ * The panel counts on the server side for every protocol, the way `wg show`
+ * reports a peer: `dataReceived` is what the server received from the client,
+ * i.e. the client's *upload*. So the pair is flipped here, once, and no caller
+ * has to think about it again.
+ *
+ * Upstream Xray fills the same fields from the opposite side, which makes the
+ * direction protocol-dependent. Our deploy normalises it at container start
+ * (personal-cloud, patches/amnezia-panel-xray-traffic-direction.patch), so this
+ * needs a panel with that patch applied.
+ *
+ * The numeric *Bytes fields are exact; the human strings are the same numbers
+ * rounded to two decimals, and only serve as a fallback for panels that send
+ * no numbers.
  */
-export function clientTraffic(protocol: string, raw: RawTraffic): {download: number; upload: number} {
-  const received = raw.dataReceivedBytes ?? parseHumanBytes(raw.dataReceived)
-  const sent = raw.dataSentBytes ?? parseHumanBytes(raw.dataSent)
-  return WG_FAMILY_PROTOCOLS.has(protocol) ? {download: sent, upload: received} : {download: received, upload: sent}
+export function clientTraffic(raw: RawTraffic): {download: number; upload: number} {
+  return {
+    download: raw.dataSentBytes ?? parseHumanBytes(raw.dataSent),
+    upload: raw.dataReceivedBytes ?? parseHumanBytes(raw.dataReceived),
+  }
 }

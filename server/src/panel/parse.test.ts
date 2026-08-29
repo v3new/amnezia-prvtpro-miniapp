@@ -38,36 +38,29 @@ describe('parseHumanAgoToISO', () => {
 })
 
 describe('clientTraffic', () => {
-  test('wg family: server-side counters are flipped to the client view', () => {
-    // `wg show` on the server: received = what the peer uploaded.
-    const t = clientTraffic('awg3', {dataReceivedBytes: 300, dataSentBytes: 9000})
-    expect(t).toEqual({download: 9000, upload: 300})
-    expect(clientTraffic('wireguard', {dataReceivedBytes: 1, dataSentBytes: 2}).download).toBe(2)
-  })
-
-  test('xray: stats are already client-side and stay put', () => {
-    // Xray statsquery: dataReceived carries the downlink.
-    expect(clientTraffic('xray', {dataReceivedBytes: 9000, dataSentBytes: 300})).toEqual({
-      download: 9000,
-      upload: 300,
-    })
+  test('server-side counters are flipped to the client view', () => {
+    // `wg show` on the server: received = what the peer uploaded. Our panel
+    // deploy patches Xray onto the same side, so there is no per-protocol
+    // case to cover here.
+    expect(clientTraffic({dataReceivedBytes: 300, dataSentBytes: 9000})).toEqual({download: 9000, upload: 300})
   })
 
   test('falls back to the rounded strings when the panel sends no numbers', () => {
-    expect(clientTraffic('awg3', {dataReceived: '234.67 MiB', dataSent: '9.03 GiB'})).toEqual({
+    expect(clientTraffic({dataReceived: '234.67 MiB', dataSent: '9.03 GiB'})).toEqual({
       download: Math.round(9.03 * 1024 ** 3),
       upload: Math.round(234.67 * 1024 ** 2),
     })
   })
 
   test('prefers the exact numbers over the rounded strings', () => {
-    expect(
-      clientTraffic('awg3', {dataReceived: '1 GiB', dataSent: '1 GiB', dataReceivedBytes: 7, dataSentBytes: 9}),
-    ).toEqual({download: 9, upload: 7})
+    expect(clientTraffic({dataReceived: '1 GiB', dataSent: '1 GiB', dataReceivedBytes: 7, dataSentBytes: 9})).toEqual({
+      download: 9,
+      upload: 7,
+    })
   })
 
   test('a peer that never transferred reads as zero', () => {
-    expect(clientTraffic('awg3', {})).toEqual({download: 0, upload: 0})
-    expect(clientTraffic('awg3', {dataReceived: '', dataSent: ''})).toEqual({download: 0, upload: 0})
+    expect(clientTraffic({})).toEqual({download: 0, upload: 0})
+    expect(clientTraffic({dataReceived: '', dataSent: ''})).toEqual({download: 0, upload: 0})
   })
 })
