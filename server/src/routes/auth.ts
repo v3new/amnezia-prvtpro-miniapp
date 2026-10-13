@@ -3,6 +3,7 @@ import {z} from 'zod'
 import {err, ok} from '../action-result.ts'
 import {issueSession, verifyInitData} from '../auth.ts'
 import type {Env} from '../env.ts'
+import {appActivity} from '../lib/app-activity.ts'
 import {buildProfile} from '../lib/profile.ts'
 import type {PanelClient} from '../panel/client.ts'
 
@@ -44,6 +45,9 @@ export function createAuthRouter(env: Env, panel: PanelClient) {
       env.JWT_SECRET,
       env.SESSION_TTL_HOURS,
     )
+
+    appActivity.recordOpen(me.username)
+    console.log(`[app] open user=${me.username}`)
 
     const profile = buildProfile(me, {
       id: tg.id,

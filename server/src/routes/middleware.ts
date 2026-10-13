@@ -2,6 +2,7 @@ import type {Context, MiddlewareHandler} from 'hono'
 import {err} from '../action-result.ts'
 import {type SessionClaims, verifySession} from '../auth.ts'
 import type {Env} from '../env.ts'
+import {appActivity} from '../lib/app-activity.ts'
 import {computeAccess, computeNextReset} from '../lib/profile.ts'
 import type {PanelClient, PanelUser} from '../panel/client.ts'
 
@@ -17,12 +18,16 @@ export function authMiddleware(env: Env): MiddlewareHandler<{Variables: AppVaria
     if (!token) {
       return c.json(err('unauthorized', 'Требуется авторизация'), 401)
     }
+    let claims: SessionClaims
     try {
-      const claims = await verifySession(token, env.JWT_SECRET)
-      c.set('session', claims)
+      claims = await verifySession(token, env.JWT_SECRET)
     } catch {
       return c.json(err('unauthorized', 'Сессия истекла, авторизуйся заново'), 401)
     }
+    c.set('session', claims)
+    // Sibling routers share this middleware, so it can run several times per
+    // request; recording the same timestamp again is harmless.
+    appActivity.recordSeen(claims.username)
     await next()
   }
 }

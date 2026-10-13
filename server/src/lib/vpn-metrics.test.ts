@@ -59,6 +59,10 @@ describe('buildVpnMetrics', () => {
     usersUp: true,
     peers,
     protocolStates: {awg3: 'up', xray: 'up', wireguard: 'down', awg2: 'absent'},
+    activity: [
+      {username: 'v3new', lastOpenAt: NOW - 60_000, lastSeenAt: NOW - 1_000, opens: 3},
+      {username: 'konstantin', lastOpenAt: null, lastSeenAt: NOW - 5_000, opens: 0},
+    ],
     scrapeSeconds: 0.1234,
     now: NOW,
   })
@@ -122,11 +126,28 @@ describe('buildVpnMetrics', () => {
       usersUp: false,
       peers: [peer('phone', 'awg3', {client_id: 'a'}), peer('phone', 'awg3', {client_id: 'b'})],
       protocolStates: {awg3: 'up'},
+      activity: [],
       scrapeSeconds: 0,
       now: NOW,
     })
     const series = dup.split('\n').filter((l) => l.startsWith('vpn_connection_download_bytes_total{'))
     expect(new Set(series).size).toBe(2)
     expect(sample(dup, 'vpn_panel_users_up', '')).toBe('vpn_panel_users_up 0')
+  })
+
+  test('mini app activity', () => {
+    const at = Math.round(NOW / 1000)
+    expect(sample(text, 'miniapp_last_open_timestamp_seconds', '{user="v3new"}')).toBe(
+      `miniapp_last_open_timestamp_seconds{user="v3new"} ${at - 60}`,
+    )
+    expect(sample(text, 'miniapp_last_seen_timestamp_seconds', '{user="v3new"}')).toBe(
+      `miniapp_last_seen_timestamp_seconds{user="v3new"} ${at - 1}`,
+    )
+    expect(sample(text, 'miniapp_opens_total', '{user="v3new"}')).toBe('miniapp_opens_total{user="v3new"} 3')
+    expect(sample(text, 'miniapp_last_open_timestamp_seconds', '{user="konstantin"}')).toBeUndefined()
+    expect(text.match(/^# TYPE miniapp_opens_total counter$/gm)).toHaveLength(1)
+    // Users without opens start at 0, so their first open is a visible increase.
+    expect(sample(text, 'miniapp_opens_total', '{user="off"}')).toBe('miniapp_opens_total{user="off"} 0')
+    expect(text.match(/^miniapp_opens_total\{user="v3new"\}/gm)).toHaveLength(1)
   })
 })

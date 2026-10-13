@@ -1,6 +1,7 @@
 import {Hono} from 'hono'
 import {ApiError} from '../action-result.ts'
 import type {Env} from '../env.ts'
+import {appActivity} from '../lib/app-activity.ts'
 import {safeEqual} from '../lib/safe-equal.ts'
 import {buildVpnMetrics, type VpnMetricsInput} from '../lib/vpn-metrics.ts'
 import type {PanelClient, PanelPeer, PanelUser} from '../panel/client.ts'
@@ -43,6 +44,7 @@ async function collect(env: Env, panel: PanelClient): Promise<string> {
     usersUp: users !== null,
     peers: results.flatMap((r) => r.peers),
     protocolStates: Object.fromEntries(results.map((r) => [r.protocol, r.state])),
+    activity: appActivity.snapshot(),
     scrapeSeconds: (performance.now() - started) / 1000,
     now: Date.now(),
   }

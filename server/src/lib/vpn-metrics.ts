@@ -1,4 +1,5 @@
 import {ownedBy, type PanelPeer, type PanelUser} from '../panel/client.ts'
+import type {UserActivity} from './app-activity.ts'
 import {parseDescription, parseDeviceFromName} from './naming.ts'
 
 // Prometheus text exposition of VPN usage, scraped by VictoriaMetrics on
@@ -25,6 +26,8 @@ export interface VpnMetricsInput {
   peers: PanelPeer[]
   /** Per protocol: answered, failed, or not installed on the server (no series at all). */
   protocolStates: Record<string, 'up' | 'down' | 'absent'>
+  /** Mini app opens and requests since the process started. */
+  activity: UserActivity[]
   scrapeSeconds: number
   now: number
 }
@@ -65,7 +68,7 @@ function peerLabels(peer: PanelPeer, owner: string): Labels {
 }
 
 export function buildVpnMetrics(input: VpnMetricsInput): string {
-  const {users, usersUp, peers, protocolStates, scrapeSeconds, now} = input
+  const {users, usersUp, peers, protocolStates, activity, scrapeSeconds, now} = input
   const usernames = users.map((u) => u.username)
   const families: Record<string, Family> = {
     vpn_users: {help: 'Panel users by state.', type: 'gauge', samples: []},
@@ -101,6 +104,17 @@ export function buildVpnMetrics(input: VpnMetricsInput): string {
       samples: [],
     },
     vpn_panel_users_up: {help: '1 if the panel answered the user list on this scrape.', type: 'gauge', samples: []},
+    miniapp_last_open_timestamp_seconds: {
+      help: 'Unix time the user last opened the mini app (successful auth).',
+      type: 'gauge',
+      samples: [],
+    },
+    miniapp_last_seen_timestamp_seconds: {
+      help: "Unix time of the user's last authenticated mini app request.",
+      type: 'gauge',
+      samples: [],
+    },
+    miniapp_opens_total: {help: 'Mini app opens since the process started.', type: 'counter', samples: []},
     vpn_metrics_scrape_duration_seconds: {help: 'Time spent collecting from the panel.', type: 'gauge', samples: []},
   }
   const add = (name: string, labels: Labels, value: number) => {
@@ -138,6 +152,19 @@ export function buildVpnMetrics(input: VpnMetricsInput): string {
     } else if (peer.protocol !== 'xray') {
       add('vpn_connection_online', labels, 0)
     }
+  }
+
+  // Every known user gets an opens counter, starting at 0, so the first open
+  // after a restart shows up as an increase instead of a new series at 1.
+  const seen = new Set(activity.map((a) => a.username))
+  if (usersUp) {
+    for (const u of users) if (!seen.has(u.username)) add('miniapp_opens_total', {user: u.username}, 0)
+  }
+  for (const a of activity) {
+    if (a.lastOpenAt !== null)
+      add('miniapp_last_open_timestamp_seconds', {user: a.username}, Math.round(a.lastOpenAt / 1000))
+    add('miniapp_last_seen_timestamp_seconds', {user: a.username}, Math.round(a.lastSeenAt / 1000))
+    add('miniapp_opens_total', {user: a.username}, a.opens)
   }
 
   add('vpn_metrics_scrape_duration_seconds', {}, Number(scrapeSeconds.toFixed(3)))
