@@ -25,6 +25,7 @@ const API_RATE_LIMIT_MAX = 600 // global per IP per minute across /api/v1/*
 // Bun default idleTimeout is 10s — too short for slow panel upstreams.
 // Value is in seconds, max 255, 0 disables.
 const SERVER_IDLE_TIMEOUT_SEC = 120
+const PEERS_REFRESH_INTERVAL_MS = 60 * 1000
 
 async function main() {
   const env = loadEnv()
@@ -34,6 +35,9 @@ async function main() {
     serverId: env.PANEL_SERVER_ID,
     protocols: [...new Set([...env.ENABLED_PROTOCOLS, ...env.LEGACY_PROTOCOLS])],
   })
+  // One background listing of every peer per minute; user requests and the
+  // metrics endpoint read the shared snapshot instead of asking the panel.
+  panel.peers.start(PEERS_REFRESH_INTERVAL_MS)
 
   const app = new Hono()
 

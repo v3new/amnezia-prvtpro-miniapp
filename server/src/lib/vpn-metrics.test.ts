@@ -63,7 +63,8 @@ describe('buildVpnMetrics', () => {
       {username: 'v3new', lastOpenAt: NOW - 60_000, lastSeenAt: NOW - 1_000, opens: 3},
       {username: 'konstantin', lastOpenAt: null, lastSeenAt: NOW - 5_000, opens: 0},
     ],
-    scrapeSeconds: 0.1234,
+    refreshSeconds: 0.1234,
+    snapshotAgeSeconds: 12.34,
     now: NOW,
   })
 
@@ -113,6 +114,7 @@ describe('buildVpnMetrics', () => {
     expect(sample(text, 'vpn_connections', '{protocol="awg3"}')).toBe('vpn_connections{protocol="awg3"} 2')
     expect(sample(text, 'vpn_connections', '{protocol="wireguard"}')).toBeUndefined()
     expect(sample(text, 'vpn_metrics_scrape_duration_seconds', '')).toBe('vpn_metrics_scrape_duration_seconds 0.123')
+    expect(sample(text, 'vpn_peers_snapshot_age_seconds', '')).toBe('vpn_peers_snapshot_age_seconds 12.3')
   })
 
   test('protocols that are not installed get no series; users status is reported', () => {
@@ -127,7 +129,8 @@ describe('buildVpnMetrics', () => {
       peers: [peer('phone', 'awg3', {client_id: 'a'}), peer('phone', 'awg3', {client_id: 'b'})],
       protocolStates: {awg3: 'up'},
       activity: [],
-      scrapeSeconds: 0,
+      refreshSeconds: 0,
+      snapshotAgeSeconds: 0,
       now: NOW,
     })
     const series = dup.split('\n').filter((l) => l.startsWith('vpn_connection_download_bytes_total{'))

@@ -28,7 +28,10 @@ export interface VpnMetricsInput {
   protocolStates: Record<string, 'up' | 'down' | 'absent'>
   /** Mini app opens and requests since the process started. */
   activity: UserActivity[]
-  scrapeSeconds: number
+  /** How long the last panel listing behind the peers took. */
+  refreshSeconds: number
+  /** Age of the shared peer snapshot at scrape time. */
+  snapshotAgeSeconds: number
   now: number
 }
 
@@ -68,7 +71,7 @@ function peerLabels(peer: PanelPeer, owner: string): Labels {
 }
 
 export function buildVpnMetrics(input: VpnMetricsInput): string {
-  const {users, usersUp, peers, protocolStates, activity, scrapeSeconds, now} = input
+  const {users, usersUp, peers, protocolStates, activity, refreshSeconds, snapshotAgeSeconds, now} = input
   const usernames = users.map((u) => u.username)
   const families: Record<string, Family> = {
     vpn_users: {help: 'Panel users by state.', type: 'gauge', samples: []},
@@ -115,7 +118,16 @@ export function buildVpnMetrics(input: VpnMetricsInput): string {
       samples: [],
     },
     miniapp_opens_total: {help: 'Mini app opens since the process started.', type: 'counter', samples: []},
-    vpn_metrics_scrape_duration_seconds: {help: 'Time spent collecting from the panel.', type: 'gauge', samples: []},
+    vpn_metrics_scrape_duration_seconds: {
+      help: 'Duration of the last panel listing behind the peer metrics.',
+      type: 'gauge',
+      samples: [],
+    },
+    vpn_peers_snapshot_age_seconds: {
+      help: 'Age of the shared peer snapshot; refreshed every minute in the background.',
+      type: 'gauge',
+      samples: [],
+    },
   }
   const add = (name: string, labels: Labels, value: number) => {
     const family = families[name]
@@ -167,6 +179,7 @@ export function buildVpnMetrics(input: VpnMetricsInput): string {
     add('miniapp_opens_total', {user: a.username}, a.opens)
   }
 
-  add('vpn_metrics_scrape_duration_seconds', {}, Number(scrapeSeconds.toFixed(3)))
+  add('vpn_metrics_scrape_duration_seconds', {}, Number(refreshSeconds.toFixed(3)))
+  add('vpn_peers_snapshot_age_seconds', {}, Number(snapshotAgeSeconds.toFixed(1)))
   return render(families)
 }

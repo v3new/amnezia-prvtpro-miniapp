@@ -46,7 +46,7 @@ describe('PanelClient.addConnection', () => {
     })
   })
 
-  test('does not let stale in-flight lists repopulate cache after create', async () => {
+  test('after create, the list comes from a listing that started after it, never the stale one', async () => {
     const staleList = deferred<Response>()
     const freshList = deferred<Response>()
     const staleListRequested = deferred<void>()
@@ -79,13 +79,15 @@ describe('PanelClient.addConnection', () => {
     const stalePromise = panel.listConnections('user-1')
     await staleListRequested.promise
     await panel.addConnection('user-1', {protocol: 'wireguard', name: 'user:router:wg (home)'})
-
     const freshPromise = panel.listConnections('user-1')
+
+    // Listings run one at a time: the fresh one is only requested after the stale one ends.
+    expect(listRequests).toBe(1)
+    staleList.resolve(jsonResponse({clients: []}))
+    expect(await stalePromise).toHaveLength(0)
     freshList.resolve(jsonResponse({clients: [rawClient()]}))
     expect(await freshPromise).toHaveLength(1)
-
-    staleList.resolve(jsonResponse({clients: []}))
-    await stalePromise
+    expect(listRequests).toBe(2)
     expect(await panel.listConnections('user-1')).toHaveLength(1)
   })
 })

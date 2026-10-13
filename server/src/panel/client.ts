@@ -3,6 +3,7 @@ import {z} from 'zod'
 import {ApiError} from '../action-result.ts'
 import {type CacheEntry, type CacheSnapshot, snapshot} from './cache.ts'
 import {clientTraffic, parseHumanAgoToISO} from './parse.ts'
+import {type PeerSet, PeerSnapshot, type ProtocolState} from './peer-snapshot.ts'
 
 export const PanelUserSchema = z.object({
   id: z.string(),
@@ -128,9 +129,12 @@ const USERS_PAGE_SIZE = 100
 const PROFILE_REFRESH_MS = 60 * 1000
 const CONFIG_CACHE_TTL_MS = 30 * 24 * 3600 * 1000
 const CONFIG_CACHE_MAX = 2000
-const CONNECTIONS_CACHE_TTL_MS = 30 * 24 * 3600 * 1000
-const CONNECTIONS_CACHE_MAX = 2000
-const CONNECTIONS_REFRESH_MS = 60 * 1000
+const PROFILE_CACHE_TTL_MS = 30 * 24 * 3600 * 1000
+// The shared peer snapshot: served for up to 10 minutes, refreshed in the
+// background every minute (see PeerSnapshot.start in index.ts).
+const PEERS_MAX_AGE_MS = 10 * 60 * 1000
+// Reported to the app as stale past this age, i.e. a background refresh was missed.
+const PEERS_STALE_MS = 2 * 60 * 1000
 // Log panel calls slower than this — useful to spot upstream slowdowns.
 const SLOW_PANEL_CALL_MS = 1000
 
@@ -145,20 +149,14 @@ export class PanelClient {
   private usersInFlight: Promise<PanelUser[]> | null = null
   private profileCache = new LRUCache<string, CacheEntry<PanelUser>>({
     max: 2000,
-    ttl: CONNECTIONS_CACHE_TTL_MS,
+    ttl: PROFILE_CACHE_TTL_MS,
   })
   private configCache = new LRUCache<string, PanelConfig>({
     max: CONFIG_CACHE_MAX,
     ttl: CONFIG_CACHE_TTL_MS,
   })
-  private connectionsCache = new LRUCache<string, CacheEntry<PanelConnection[]>>({
-    max: CONNECTIONS_CACHE_MAX,
-    ttl: CONNECTIONS_CACHE_TTL_MS,
-  })
-  // Coalesce parallel listConnections() calls per user so we don't fan out
-  // multiple panel round-trips during the cold-cache window.
-  private connectionsInFlight = new Map<string, Promise<PanelConnection[]>>()
-  private connectionsCacheVersion = 0
+  /** Every peer on the server, shared by all users and the metrics endpoint. */
+  readonly peers: PeerSnapshot
 
   constructor(opts: PanelClientOptions) {
     this.baseUrl = opts.baseUrl.replace(/\/+$/, '')
@@ -167,6 +165,7 @@ export class PanelClient {
     this.protocols = opts.protocols
     this.requestTimeoutMs = opts.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS
     this.usersCacheTtlMs = opts.usersCacheTtlMs ?? DEFAULT_USERS_CACHE_TTL_MS
+    this.peers = new PeerSnapshot(() => this.fetchAllPeers(), PEERS_MAX_AGE_MS)
   }
 
   private async request<S extends z.ZodTypeAny>(
@@ -329,82 +328,44 @@ export class PanelClient {
   }
 
   async getConnections(userId: string): Promise<CacheSnapshot<PanelConnection[]>> {
-    const cached = this.connectionsCache.get(userId)
-    if (cached) {
-      console.log(`[panel] listConnections(${userId}) cache hit`)
-      if (Date.now() - cached.fetchedAt >= CONNECTIONS_REFRESH_MS) {
-        this.refreshConnections(userId, cached)
-      }
-      return snapshot(cached, CONNECTIONS_REFRESH_MS)
+    const [user, snap] = await Promise.all([this.findUserById(userId), this.peers.get()])
+    const owned = user ? snap.peers.filter((p) => ownedBy(p.name, user.username)) : []
+    // Stale when the snapshot missed refreshes, or when a protocol this user is
+    // on failed its last listing and still shows its previous peers. Only then
+    // does the app poll again (every 2.5 s, served from memory).
+    const down = this.peers.downProtocols()
+    const stale = Date.now() - snap.fetchedAt >= PEERS_STALE_MS || owned.some((p) => down.includes(p.protocol))
+    return {
+      value: owned.map((p) => this.toPanelConnection(p, userId)),
+      cached_at: new Date(snap.fetchedAt).toISOString(),
+      is_stale: stale,
+      refresh_in_progress: stale,
     }
-    const inFlight = this.connectionsInFlight.get(userId)
-    if (inFlight) {
-      console.log(`[panel] listConnections(${userId}) in-flight reuse`)
-      const value = await inFlight
-      return snapshot({value, fetchedAt: Date.now()}, CONNECTIONS_REFRESH_MS)
+  }
+
+  /** One listing of every protocol: the unit of work behind the shared snapshot. */
+  private async fetchAllPeers(): Promise<PeerSet> {
+    const results = await Promise.all(
+      this.protocols.map(async (protocol): Promise<[string, ProtocolState, PanelPeer[]]> => {
+        try {
+          return [protocol, 'up', await this.listPeers(protocol)]
+        } catch (e) {
+          // The panel answers 400/404 for a protocol that is not installed on the server.
+          if (e instanceof ApiError && (e.status === 400 || e.status === 404)) return [protocol, 'absent', []]
+          console.warn(`[panel] ${protocol} peers failed: ${(e as Error).message}`)
+          return [protocol, 'down', []]
+        }
+      }),
+    )
+    return {
+      peers: results.flatMap(([, , peers]) => peers),
+      states: Object.fromEntries(results.map(([protocol, state]) => [protocol, state])),
     }
-    const cacheVersion = this.connectionsCacheVersion
-    const promise = this.fetchConnections(userId)
-      .then((flat) => {
-        if (this.connectionsCacheVersion === cacheVersion) {
-          this.connectionsCache.set(userId, {value: flat, fetchedAt: Date.now()})
-        }
-        return flat
-      })
-      .finally(() => {
-        if (this.connectionsInFlight.get(userId) === promise) {
-          this.connectionsInFlight.delete(userId)
-        }
-      })
-    this.connectionsInFlight.set(userId, promise)
-    const value = await promise
-    return snapshot({value, fetchedAt: Date.now()}, CONNECTIONS_REFRESH_MS)
   }
 
-  private refreshConnections(userId: string, entry: CacheEntry<PanelConnection[]>): void {
-    if (entry.refreshPromise) return
-    const cacheVersion = this.connectionsCacheVersion
-    entry.refreshPromise = this.fetchConnections(userId)
-      .then((fresh) => {
-        if (this.connectionsCacheVersion === cacheVersion) {
-          entry.value = fresh
-          entry.fetchedAt = Date.now()
-        }
-        return fresh
-      })
-      .catch((e) => {
-        console.warn(`[panel] refreshConnections(${userId}) failed: ${(e as Error).message}`)
-        return entry.value
-      })
-      .finally(() => {
-        entry.refreshPromise = undefined
-      })
-  }
-
-  private async fetchConnections(userId: string): Promise<PanelConnection[]> {
-    const user = await this.findUserById(userId)
-    if (!user) return []
-    const username = user.username
-
-    // A protocol that is not installed, or fails, simply contributes nothing.
-    const perProto = await Promise.all(this.protocols.map((proto) => this.listPeers(proto).catch(() => [])))
-    return perProto
-      .flat()
-      .filter((peer) => ownedBy(peer.name, username))
-      .map((peer) => this.toPanelConnection(peer, userId))
-  }
-
-  /** Force the next listConnections to hit the panel. Call after add/remove/toggle. */
-  invalidateConnectionsCache(userId: string): void {
-    this.connectionsCacheVersion += 1
-    this.connectionsCache.delete(userId)
-    this.connectionsInFlight.delete(userId)
-  }
-
-  private invalidateAllConnectionsCache(): void {
-    this.connectionsCacheVersion += 1
-    this.connectionsCache.clear()
-    this.connectionsInFlight.clear()
+  /** After add/remove/toggle: the next read waits for a listing that started after the change. */
+  invalidateConnectionsCache(): void {
+    this.peers.invalidate()
   }
 
   async findOwnedConnection(userId: string, connectionId: string): Promise<PanelConnection | null> {
@@ -436,7 +397,7 @@ export class PanelClient {
       {protocol: body.protocol, name: body.name, user_id: userId},
       z.unknown(),
     )
-    this.invalidateConnectionsCache(userId)
+    this.invalidateConnectionsCache()
     const cfg = extractConfig(raw)
     const clientId = extractClientId(raw)
     if (!clientId) {
@@ -468,10 +429,7 @@ export class PanelClient {
       z.unknown(),
     )
     this.configCache.delete(configCacheKey(protocol, clientId))
-    // Wipe every connections-list cache that referenced this clientId — we
-    // don't know which userId(s) own it, so the safest move is to drop all.
-    // Listing all users is cheap (it's a map) and this happens only on delete.
-    this.invalidateAllConnectionsCache()
+    this.invalidateConnectionsCache()
     return {ok: true}
   }
 
@@ -482,7 +440,7 @@ export class PanelClient {
       {protocol, client_id: clientId, enable},
       z.unknown(),
     )
-    this.invalidateAllConnectionsCache()
+    this.invalidateConnectionsCache()
     return {enabled: enable}
   }
 
