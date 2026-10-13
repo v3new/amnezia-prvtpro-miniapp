@@ -16,6 +16,17 @@ export const PROTO_LABEL: Record<string, string> = {
   xray: 'Xray (VLESS-Reality)',
 }
 
+// The panel's own protocol tags (protocol_short_name()), used in the names
+// AmneziaVPN shows after import, e.g. "Рабочий Mac · AWG3".
+export const PROTO_TAG: Record<string, string> = {
+  awg3: 'AWG3',
+  awg2: 'AWG2',
+  awg: 'AWG',
+  awg_legacy: 'AWG-Legacy',
+  wireguard: 'WG',
+  xray: 'Xray',
+}
+
 // Everything that speaks WireGuard on the wire: same .conf container, same
 // server-side `wg show` counters. Xray is the odd one out on both counts.
 export const WG_FAMILY_PROTOCOLS = new Set(['awg3', 'awg2', 'awg', 'awg_legacy', 'wireguard'])

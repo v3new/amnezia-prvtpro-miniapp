@@ -12,7 +12,14 @@ describe('download token', () => {
   test('sign + verify roundtrip', async () => {
     const t = await signDownloadToken({cid: 'c1', uid: 'u1', proto: 'awg2', fmt: 'conf', name: 'home'}, SECRET)
     const c = await verifyDownloadToken(t, SECRET)
-    expect(c).toEqual({cid: 'c1', uid: 'u1', proto: 'awg2', fmt: 'conf', name: 'home'})
+    // Tokens issued without a label (before it existed) verify with an empty one.
+    expect(c).toEqual({cid: 'c1', uid: 'u1', proto: 'awg2', fmt: 'conf', name: 'home', label: ''})
+  })
+
+  test('carries the client label', async () => {
+    const claims = {cid: 'c1', uid: 'u1', proto: 'awg3', fmt: 'vpn', name: 'home', label: 'Рабочий Mac · AWG3'} as const
+    const c = await verifyDownloadToken(await signDownloadToken(claims, SECRET), SECRET)
+    expect(c.label).toBe('Рабочий Mac · AWG3')
   })
 
   test('rejects expired', async () => {

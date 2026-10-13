@@ -2,6 +2,7 @@ import {zipSync} from 'fflate'
 import {Hono} from 'hono'
 import {err} from '../action-result.ts'
 import type {Env} from '../env.ts'
+import {relabelVpnLink} from '../lib/client-label.ts'
 import {contentDispositionAttachment, type DownloadClaims, verifyDownloadToken} from '../lib/download-token.ts'
 import type {PanelClient} from '../panel/client.ts'
 
@@ -34,7 +35,9 @@ export function createDownloadRouter(env: Env, panel: PanelClient) {
         ? cfg.config
         : // AmneziaVPN-native `.vpn` file: the desktop client treats the file
           // contents as the same `vpn://...` URL that you'd paste manually.
-          cfg.vpn_link
+          claims.label
+          ? relabelVpnLink(cfg.vpn_link, claims.label)
+          : cfg.vpn_link
 
     if (!body) return c.json(err('config_unavailable', 'Конфиг недоступен'), 502)
 

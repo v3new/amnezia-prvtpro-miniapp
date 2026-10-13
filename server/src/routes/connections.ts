@@ -2,6 +2,7 @@ import {Hono} from 'hono'
 import {z} from 'zod'
 import {ApiError, err, ok} from '../action-result.ts'
 import type {Env} from '../env.ts'
+import {clientLabel, relabelConfig} from '../lib/client-label.ts'
 import {DEVICE_SLUGS} from '../lib/devices.ts'
 import {
   DOWNLOAD_TOKEN_TTL_SEC,
@@ -150,15 +151,16 @@ export function createConnectionsRouter(env: Env, panel: PanelClient) {
       protocol: parsed.data.protocol,
       name,
     })
+    const cfg = relabelConfig(created, clientLabel(name, parsed.data.protocol))
 
     return c.json(
       ok({
         id: created.id,
         name: created.name,
         description: descCheck.value,
-        config: created.config,
-        vpn_link: created.vpn_link,
-        qr_payload: created.config,
+        config: cfg.config,
+        vpn_link: cfg.vpn_link,
+        qr_payload: cfg.config,
       }),
     )
   })
@@ -189,7 +191,10 @@ export function createConnectionsRouter(env: Env, panel: PanelClient) {
     const id = c.req.param('id')
     const conn = await panel.findOwnedConnection(session.panel_user_id, id)
     if (!conn) return c.json(err('not_found', 'Соединение не найдено'), 404)
-    const cfg = await panel.getConnectionConfig(conn.protocol, conn.client_id)
+    const cfg = relabelConfig(
+      await panel.getConnectionConfig(conn.protocol, conn.client_id),
+      clientLabel(conn.name, conn.protocol),
+    )
     return c.json(
       ok({
         id: conn.id,
@@ -227,7 +232,14 @@ export function createConnectionsRouter(env: Env, panel: PanelClient) {
     const filename = `${baseName}.${format}`
 
     const token = await signDownloadToken(
-      {cid: conn.id, uid: session.panel_user_id, proto: conn.protocol, fmt: format, name: baseName},
+      {
+        cid: conn.id,
+        uid: session.panel_user_id,
+        proto: conn.protocol,
+        fmt: format,
+        name: baseName,
+        label: clientLabel(conn.name, conn.protocol),
+      },
       env.JWT_SECRET,
     )
 

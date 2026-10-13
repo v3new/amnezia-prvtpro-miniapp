@@ -13,6 +13,8 @@ export interface DownloadClaims {
   fmt: DownloadFormat
   /** Filename without extension (already sanitized). */
   name: string
+  /** Name AmneziaVPN shows after import; empty in tokens issued before it existed. */
+  label?: string
 }
 
 export const DOWNLOAD_TOKEN_TTL_SEC = 600
@@ -38,10 +40,11 @@ export async function verifyDownloadToken(token: string, secret: string): Promis
   const proto = String(payload.proto ?? '')
   const fmt = payload.fmt
   const name = String(payload.name ?? '')
+  const label = typeof payload.label === 'string' ? payload.label : ''
   if (!cid || !uid || !proto || !name || (fmt !== 'conf' && fmt !== 'vpn')) {
     throw new Error('invalid download token payload')
   }
-  return {cid, uid, proto, fmt, name}
+  return {cid, uid, proto, fmt, name, label}
 }
 
 const FILENAME_MAX_LEN = 64
