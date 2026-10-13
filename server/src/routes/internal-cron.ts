@@ -1,10 +1,10 @@
-import {timingSafeEqual} from 'node:crypto'
 import type {Bot} from 'grammy'
 import {Hono} from 'hono'
 import {err, ok} from '../action-result.ts'
 import {runWeeklyDigest} from '../bot/digest.ts'
 import {runTrafficAlerts} from '../bot/traffic-alerts.ts'
 import type {Env} from '../env.ts'
+import {safeEqual} from '../lib/safe-equal.ts'
 import type {PanelClient} from '../panel/client.ts'
 
 export function createInternalCronRouter(env: Env, panel: PanelClient, bot: Bot) {
@@ -31,11 +31,4 @@ export function createInternalCronRouter(env: Env, panel: PanelClient, bot: Bot)
   })
 
   return app
-}
-
-function safeEqual(a: string, b: string): boolean {
-  const ab = Buffer.from(a)
-  const bb = Buffer.from(b)
-  if (ab.length !== bb.length) return false
-  return timingSafeEqual(ab, bb)
 }

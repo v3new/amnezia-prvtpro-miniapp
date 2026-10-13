@@ -26,6 +26,12 @@ const EnvSchema = z
     SESSION_TTL_HOURS: z.coerce.number().int().positive().default(24),
 
     CRON_SECRET: z.string().min(16),
+    // Bearer token for GET /internal/metrics (VictoriaMetrics scrape). Unset disables the endpoint.
+    METRICS_TOKEN: z
+      .string()
+      .min(32)
+      .optional()
+      .or(z.literal('').transform(() => undefined)),
 
     PANEL_BASE_URL: z.string().url(),
     PANEL_API_TOKEN: z.string().min(1),

@@ -87,9 +87,17 @@ const PingSchema = z.object({
   protocols_available: z.array(z.string()).optional(),
 })
 
-const ProtocolClientsSchema = z.object({
-  clients: z.array(z.object({id: z.string(), name: z.string().optional().default('')})).default([]),
-})
+/** A peer as the panel reports it; traffic is from the client's side. */
+export interface PanelPeer {
+  client_id: string
+  protocol: string
+  name: string
+  download: number
+  upload: number
+  created_at: string | null
+  enabled: boolean
+  last_handshake_at: string | null
+}
 
 export interface PanelConfig {
   config: string
@@ -378,26 +386,12 @@ export class PanelClient {
     if (!user) return []
     const username = user.username
 
-    const perProto = await Promise.all(
-      this.protocols.map(async (proto) => {
-        try {
-          const data = await this.request(
-            'GET',
-            `/api/servers/${this.serverId}/connections?protocol=${encodeURIComponent(proto)}`,
-            undefined,
-            ConnectionsEnvelopeSchema,
-          )
-          return data.clients.map((c) => this.toPanelConnection(c, proto, userId, username))
-        } catch (e) {
-          if (e instanceof ApiError && (e.status === 404 || e.status === 400)) return []
-          if (e instanceof z.ZodError) return []
-          // Other protocol may not be installed — silently skip
-          return []
-        }
-      }),
-    )
-
-    return perProto.flat().filter((c): c is PanelConnection => c !== null)
+    // A protocol that is not installed, or fails, simply contributes nothing.
+    const perProto = await Promise.all(this.protocols.map((proto) => this.listPeers(proto).catch(() => [])))
+    return perProto
+      .flat()
+      .filter((peer) => ownedBy(peer.name, username))
+      .map((peer) => this.toPanelConnection(peer, userId))
   }
 
   /** Force the next listConnections to hit the panel. Call after add/remove/toggle. */
@@ -418,29 +412,20 @@ export class PanelClient {
     return conns.find((c) => c.id === connectionId) ?? null
   }
 
-  private toPanelConnection(
-    raw: z.infer<typeof RawClientSchema>,
-    protocol: string,
-    userId: string,
-    username: string,
-  ): PanelConnection | null {
-    const name = raw.userData.clientName ?? ''
-    if (!ownedBy(name, username)) return null
-    // Panel counters are server-side; clientTraffic() turns them around.
-    const {download, upload} = clientTraffic(raw.userData)
+  private toPanelConnection(peer: PanelPeer, userId: string): PanelConnection {
     return {
-      id: raw.clientId,
+      id: peer.client_id,
       user_id: userId,
       server_id: this.serverId,
-      protocol,
-      client_id: raw.clientId,
-      name,
-      last_bytes: upload + download,
-      bytes_received: download,
-      bytes_sent: upload,
-      created_at: raw.userData.creationDate ?? null,
-      enabled: raw.userData.enabled ?? true,
-      last_handshake_at: parseHumanAgoToISO(raw.userData.latestHandshake),
+      protocol: peer.protocol,
+      client_id: peer.client_id,
+      name: peer.name,
+      last_bytes: peer.upload + peer.download,
+      bytes_received: peer.download,
+      bytes_sent: peer.upload,
+      created_at: peer.created_at,
+      enabled: peer.enabled,
+      last_handshake_at: peer.last_handshake_at,
     }
   }
 
@@ -531,14 +516,24 @@ export class PanelClient {
     }
   }
 
-  async listProtocolClients(protocol: string): Promise<Array<{client_id: string; last_handshake: string | null}>> {
+  /** Every peer of one protocol with its counters, uncached: one SSH round-trip on the panel. */
+  async listPeers(protocol: string): Promise<PanelPeer[]> {
     const data = await this.request(
       'GET',
-      `/api/servers/${this.serverId}/${encodeURIComponent(protocol)}/clients`,
+      `/api/servers/${this.serverId}/connections?protocol=${encodeURIComponent(protocol)}`,
       undefined,
-      ProtocolClientsSchema,
+      ConnectionsEnvelopeSchema,
     )
-    return data.clients.map((c) => ({client_id: c.id, last_handshake: null}))
+    return data.clients.map((raw) => ({
+      client_id: raw.clientId,
+      protocol,
+      name: raw.userData.clientName,
+      // Panel counters are server-side; clientTraffic() turns them around.
+      ...clientTraffic(raw.userData),
+      created_at: raw.userData.creationDate ?? null,
+      enabled: raw.userData.enabled ?? true,
+      last_handshake_at: parseHumanAgoToISO(raw.userData.latestHandshake),
+    }))
   }
 }
 
@@ -546,7 +541,7 @@ function configCacheKey(protocol: string, clientId: string): string {
   return `${protocol}:${clientId}`
 }
 
-function ownedBy(clientName: string, username: string): boolean {
+export function ownedBy(clientName: string, username: string): boolean {
   if (!username || !clientName) return false
   if (clientName === username) return true
   const lowerName = clientName.toLowerCase()

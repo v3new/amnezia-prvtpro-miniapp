@@ -10,6 +10,7 @@ import {createAuthRouter} from './routes/auth.ts'
 import {createConnectionsRouter} from './routes/connections.ts'
 import {createDownloadRouter} from './routes/download.ts'
 import {createInternalCronRouter} from './routes/internal-cron.ts'
+import {createMetricsRouter} from './routes/metrics.ts'
 import {createOptionsRouter} from './routes/options.ts'
 import {createProfileRouter} from './routes/profile.ts'
 import {createServerRouter} from './routes/server.ts'
@@ -79,6 +80,8 @@ async function main() {
   if (env.TG_BOT_MODE === 'webhook') {
     app.post(BOT_WEBHOOK_PATH, createBotWebhookHandler(bot, env))
   }
+  // Before the cron router: its secret check runs for every /internal path it sees.
+  app.route('/internal', createMetricsRouter(env, panel))
   app.route('/internal', createInternalCronRouter(env, panel, bot))
 
   const spa = serveSpa(getStaticRoot())

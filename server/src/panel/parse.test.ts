@@ -31,6 +31,7 @@ describe('parseHumanAgoToISO', () => {
   })
 
   test('nullish on garbage', () => {
+    expect(parseHumanAgoToISO('Now', Date.parse('2026-05-23T15:00:00Z'))).toBe('2026-05-23T15:00:00.000Z')
     expect(parseHumanAgoToISO('never')).toBeNull()
     expect(parseHumanAgoToISO('')).toBeNull()
     expect(parseHumanAgoToISO(null)).toBeNull()

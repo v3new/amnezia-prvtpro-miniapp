@@ -47,6 +47,8 @@ export function parseHumanAgoToISO(input: string | null | undefined, now = Date.
   if (!input) return null
   const cleaned = input.trim().replace(/\s+ago$/i, '')
   if (!cleaned) return null
+  // `wg show` prints "Now" for a handshake in the current second.
+  if (/^(just\s+)?now$/i.test(cleaned)) return new Date(now).toISOString()
   let totalSec = 0
   const re = /(\d+)\s*([A-Za-z]+)/g
   let match: RegExpExecArray | null
