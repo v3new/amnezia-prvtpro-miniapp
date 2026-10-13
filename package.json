@@ -2,7 +2,7 @@
   "name": "amnezia-prvtpro-miniapp",
   "private": true,
   "type": "module",
-  "packageManager": "bun@1.1.34",
+  "packageManager": "bun@1.3.3",
   "workspaces": [
     "client",
     "server"
