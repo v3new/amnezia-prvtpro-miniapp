@@ -5,7 +5,7 @@ import type {Env} from '../env.ts'
 import type {PanelClient, PanelUser} from '../panel/client.ts'
 import type {PeerSnapshotData} from '../panel/peer-snapshot.ts'
 import {createInternalCronRouter} from './internal-cron.ts'
-import {createMetricsRouter} from './metrics.ts'
+import {createMetricsRouter, type ExtraMetricsServer} from './metrics.ts'
 
 const TOKEN = 'm'.repeat(40)
 const AUTH = {headers: {authorization: `Bearer ${TOKEN}`}}
@@ -36,10 +36,10 @@ function fakePanel(opts: {usersFail?: boolean; snapshot?: PeerSnapshotData | nul
   return {panel, calls}
 }
 
-function appWith(metricsToken: string | undefined, panel: PanelClient): Hono {
-  const env = {METRICS_TOKEN: metricsToken, CRON_SECRET: 'c'.repeat(20)} as Env
+function appWith(metricsToken: string | undefined, panel: PanelClient, extra: ExtraMetricsServer[] = []): Hono {
+  const env = {METRICS_TOKEN: metricsToken, CRON_SECRET: 'c'.repeat(20), METRICS_SERVER_NAME: undefined} as Env
   const app = new Hono()
-  app.route('/internal', createMetricsRouter(env, panel))
+  app.route('/internal', createMetricsRouter(env, panel, extra))
   app.route('/internal', createInternalCronRouter(env, panel, {} as Bot))
   return app
 }
@@ -79,6 +79,19 @@ describe('GET /internal/metrics', () => {
     const res = await appWith(TOKEN, fakePanel({usersFail: true}).panel).request('/internal/metrics', AUTH)
     expect(res.status).toBe(200)
     expect(await res.text()).toContain('vpn_panel_users_up 0')
+  })
+
+  test('extra servers come from their ready snapshot and never block the scrape', async () => {
+    const ready = fakePanel()
+    const starting = fakePanel({snapshot: null})
+    const res = await appWith(TOKEN, fakePanel().panel, [
+      {name: 'yandex', panel: ready.panel},
+      {name: 'later', panel: starting.panel},
+    ]).request('/internal/metrics', AUTH)
+    const body = await res.text()
+    expect(body).toContain('vpn_panel_protocol_up{server="yandex",protocol="awg3"} 1')
+    expect(body).not.toContain('server="later"')
+    expect(starting.calls.get).toBe(0)
   })
 
   test('cron endpoints still require the cron secret', async () => {

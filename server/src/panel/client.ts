@@ -352,7 +352,7 @@ export class PanelClient {
         } catch (e) {
           // The panel answers 400/404 for a protocol that is not installed on the server.
           if (e instanceof ApiError && (e.status === 400 || e.status === 404)) return [protocol, 'absent', []]
-          console.warn(`[panel] ${protocol} peers failed: ${(e as Error).message}`)
+          console.warn(`[panel] server ${this.serverId} ${protocol} peers failed: ${(e as Error).message}`)
           return [protocol, 'down', []]
         }
       }),

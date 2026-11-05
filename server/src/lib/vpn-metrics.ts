@@ -19,19 +19,32 @@ interface Family {
   samples: Array<{labels: Labels; value: number}>
 }
 
-export interface VpnMetricsInput {
-  users: PanelUser[]
-  /** False when the user list could not be fetched; peers are then reported as unassigned. */
-  usersUp: boolean
+/** Peers of one VPN server as of its latest snapshot. */
+export interface ServerPeers {
   peers: PanelPeer[]
   /** Per protocol: answered, failed, or not installed on the server (no series at all). */
   protocolStates: Record<string, 'up' | 'down' | 'absent'>
-  /** Mini app opens and requests since the process started. */
-  activity: UserActivity[]
   /** How long the last panel listing behind the peers took. */
   refreshSeconds: number
   /** Age of the shared peer snapshot at scrape time. */
   snapshotAgeSeconds: number
+}
+
+/** A server watched for metrics only; its series carry `server="<name>"`. */
+export interface NamedServerPeers extends ServerPeers {
+  name: string
+}
+
+export interface VpnMetricsInput extends ServerPeers {
+  users: PanelUser[]
+  /** False when the user list could not be fetched; peers are then reported as unassigned. */
+  usersUp: boolean
+  /** `server` label for the mini app's own server; unset keeps its series unlabelled. */
+  serverName?: string
+  /** Other panel servers, e.g. an old ingress kept up to see whether its peers still connect. */
+  extraServers?: NamedServerPeers[]
+  /** Mini app opens and requests since the process started. */
+  activity: UserActivity[]
   now: number
 }
 
@@ -71,7 +84,7 @@ function peerLabels(peer: PanelPeer, owner: string): Labels {
 }
 
 export function buildVpnMetrics(input: VpnMetricsInput): string {
-  const {users, usersUp, peers, protocolStates, activity, refreshSeconds, snapshotAgeSeconds, now} = input
+  const {users, usersUp, activity, now} = input
   const usernames = users.map((u) => u.username)
   const families: Record<string, Family> = {
     vpn_users: {help: 'Panel users by state.', type: 'gauge', samples: []},
@@ -129,7 +142,7 @@ export function buildVpnMetrics(input: VpnMetricsInput): string {
       samples: [],
     },
   }
-  const add = (name: string, labels: Labels, value: number) => {
+  const add: AddSample = (name, labels, value) => {
     const family = families[name]
     if (!family) throw new Error(`metric family ${name} is not declared`)
     family.samples.push({labels, value})
@@ -146,25 +159,8 @@ export function buildVpnMetrics(input: VpnMetricsInput): string {
   }
 
   add('vpn_panel_users_up', {}, usersUp ? 1 : 0)
-  for (const [protocol, state] of Object.entries(protocolStates)) {
-    if (state === 'absent') continue
-    add('vpn_panel_protocol_up', {protocol}, state === 'up' ? 1 : 0)
-    if (state === 'up') add('vpn_connections', {protocol}, peers.filter((p) => p.protocol === protocol).length)
-  }
-
-  for (const peer of peers) {
-    const labels = peerLabels(peer, peerOwner(peer.name, usernames))
-    add('vpn_connection_download_bytes_total', labels, peer.download)
-    add('vpn_connection_upload_bytes_total', labels, peer.upload)
-    add('vpn_connection_enabled', labels, peer.enabled ? 1 : 0)
-    if (peer.last_handshake_at) {
-      const at = Date.parse(peer.last_handshake_at) / 1000
-      add('vpn_connection_last_handshake_timestamp_seconds', labels, Math.round(at))
-      add('vpn_connection_online', labels, now / 1000 - at < ONLINE_HANDSHAKE_SEC ? 1 : 0)
-    } else if (peer.protocol !== 'xray') {
-      add('vpn_connection_online', labels, 0)
-    }
-  }
+  addServerSamples(add, usernames, input, input.serverName, now)
+  for (const extra of input.extraServers ?? []) addServerSamples(add, usernames, extra, extra.name, now)
 
   // Every known user gets an opens counter, starting at 0, so the first open
   // after a restart shows up as an increase instead of a new series at 1.
@@ -179,7 +175,40 @@ export function buildVpnMetrics(input: VpnMetricsInput): string {
     add('miniapp_opens_total', {user: a.username}, a.opens)
   }
 
-  add('vpn_metrics_scrape_duration_seconds', {}, Number(refreshSeconds.toFixed(3)))
-  add('vpn_peers_snapshot_age_seconds', {}, Number(snapshotAgeSeconds.toFixed(1)))
   return render(families)
+}
+
+type AddSample = (name: string, labels: Labels, value: number) => void
+
+/** Peer, protocol and snapshot series of one server, labelled with `server` when it is named. */
+function addServerSamples(
+  add: AddSample,
+  usernames: string[],
+  s: ServerPeers,
+  server: string | undefined,
+  now: number,
+) {
+  const tag = (labels: Labels): Labels => (server ? {server, ...labels} : labels)
+  for (const [protocol, state] of Object.entries(s.protocolStates)) {
+    if (state === 'absent') continue
+    add('vpn_panel_protocol_up', tag({protocol}), state === 'up' ? 1 : 0)
+    if (state === 'up') add('vpn_connections', tag({protocol}), s.peers.filter((p) => p.protocol === protocol).length)
+  }
+
+  for (const peer of s.peers) {
+    const labels = tag(peerLabels(peer, peerOwner(peer.name, usernames)))
+    add('vpn_connection_download_bytes_total', labels, peer.download)
+    add('vpn_connection_upload_bytes_total', labels, peer.upload)
+    add('vpn_connection_enabled', labels, peer.enabled ? 1 : 0)
+    if (peer.last_handshake_at) {
+      const at = Date.parse(peer.last_handshake_at) / 1000
+      add('vpn_connection_last_handshake_timestamp_seconds', labels, Math.round(at))
+      add('vpn_connection_online', labels, now / 1000 - at < ONLINE_HANDSHAKE_SEC ? 1 : 0)
+    } else if (peer.protocol !== 'xray') {
+      add('vpn_connection_online', labels, 0)
+    }
+  }
+
+  add('vpn_metrics_scrape_duration_seconds', tag({}), Number(s.refreshSeconds.toFixed(3)))
+  add('vpn_peers_snapshot_age_seconds', tag({}), Number(s.snapshotAgeSeconds.toFixed(1)))
 }

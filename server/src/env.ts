@@ -7,6 +7,61 @@ function splitList(v: string): string[] {
     .filter(Boolean)
 }
 
+const SERVER_NAME = /^[a-z0-9-]+$/
+
+const PROTOCOLS = ['awg3', 'awg2', 'awg', 'awg_legacy', 'wireguard', 'xray'] as const
+
+const ExtraServerSchema = z.object({
+  name: z.string().regex(SERVER_NAME),
+  serverId: z
+    .string()
+    .regex(/^\d+$/)
+    .transform((s) => Number(s)),
+  protocols: z
+    .array(z.enum(PROTOCOLS))
+    .min(1)
+    .transform((list) => [...new Set(list)]),
+})
+
+export type ExtraServer = z.infer<typeof ExtraServerSchema>
+
+export function parseExtraServers(v: string, ctx: z.RefinementCtx): ExtraServer[] {
+  const servers: ExtraServer[] = []
+  for (const entry of splitList(v)) {
+    const parts = entry.split(':')
+    const [name = '', serverId = '', protocols = ''] = parts
+    const parsed =
+      parts.length === 3
+        ? ExtraServerSchema.safeParse({name, serverId, protocols: protocols.split('+').filter(Boolean)})
+        : null
+    if (!parsed?.success) {
+      ctx.addIssue({code: z.ZodIssueCode.custom, message: `expected name:serverId:proto+proto, got "${entry}"`})
+      return z.NEVER
+    }
+    servers.push(parsed.data)
+  }
+  return servers
+}
+
+/**
+ * Every server's series must stay distinct: unique ids and names, none equal to
+ * the main server, and the main server named so its totals never mix with extras.
+ */
+export function checkExtraServers(
+  env: {PANEL_SERVER_ID: number; METRICS_SERVER_NAME?: string; METRICS_EXTRA_SERVERS: ExtraServer[]},
+  ctx: z.RefinementCtx,
+): void {
+  const extras = env.METRICS_EXTRA_SERVERS
+  if (extras.length === 0) return
+  const issue = (message: string) =>
+    ctx.addIssue({code: z.ZodIssueCode.custom, path: ['METRICS_EXTRA_SERVERS'], message})
+  if (!env.METRICS_SERVER_NAME) issue('METRICS_SERVER_NAME is required when METRICS_EXTRA_SERVERS is set')
+  const ids = [env.PANEL_SERVER_ID, ...extras.map((s) => s.serverId)]
+  if (new Set(ids).size !== ids.length) issue('server ids must be unique and differ from PANEL_SERVER_ID')
+  const names = [env.METRICS_SERVER_NAME, ...extras.map((s) => s.name)]
+  if (new Set(names).size !== names.length) issue('server names must be unique and differ from METRICS_SERVER_NAME')
+}
+
 const EnvSchema = z
   .object({
     TG_BOT_TOKEN: z.string().min(1),
@@ -32,6 +87,16 @@ const EnvSchema = z
       .min(32)
       .optional()
       .or(z.literal('').transform(() => undefined)),
+
+    // `server` label on the metrics of PANEL_SERVER_ID; unset keeps them unlabelled.
+    METRICS_SERVER_NAME: z
+      .string()
+      .regex(SERVER_NAME)
+      .optional()
+      .or(z.literal('').transform(() => undefined)),
+    // Other panel servers watched for metrics only, never shown to users:
+    // `name:serverId:proto+proto`, comma-separated, e.g. `yandex:1:awg2+awg3+xray+wireguard`.
+    METRICS_EXTRA_SERVERS: z.string().default('').transform(parseExtraServers),
 
     PANEL_BASE_URL: z.string().url(),
     PANEL_API_TOKEN: z.string().min(1),
@@ -72,6 +137,7 @@ const EnvSchema = z
         message: `overlaps ENABLED_PROTOCOLS: ${overlap.join(', ')}`,
       })
     }
+    checkExtraServers(env, ctx)
     if (!env.ENABLED_PROTOCOLS.includes(env.DEFAULT_PROTOCOL)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

@@ -26,6 +26,7 @@ const API_RATE_LIMIT_MAX = 600 // global per IP per minute across /api/v1/*
 // Value is in seconds, max 255, 0 disables.
 const SERVER_IDLE_TIMEOUT_SEC = 120
 const PEERS_REFRESH_INTERVAL_MS = 60 * 1000
+const EXTRA_SERVERS_OFFSET_MS = PEERS_REFRESH_INTERVAL_MS / 2
 
 async function main() {
   const env = loadEnv()
@@ -38,6 +39,19 @@ async function main() {
   // One background listing of every peer per minute; user requests and the
   // metrics endpoint read the shared snapshot instead of asking the panel.
   panel.peers.start(PEERS_REFRESH_INTERVAL_MS)
+  // Servers watched for metrics only: their own background listing, never
+  // reachable from the user-facing routes. The panel runs SSH listings one
+  // after another, so they start half an interval after the main one.
+  const extraMetricsServers = (env.METRICS_TOKEN ? env.METRICS_EXTRA_SERVERS : []).map((s) => {
+    const client = new PanelClient({
+      baseUrl: env.PANEL_BASE_URL,
+      token: env.PANEL_API_TOKEN,
+      serverId: s.serverId,
+      protocols: s.protocols,
+    })
+    setTimeout(() => client.peers.start(PEERS_REFRESH_INTERVAL_MS), EXTRA_SERVERS_OFFSET_MS)
+    return {name: s.name, panel: client}
+  })
 
   const app = new Hono()
 
@@ -85,7 +99,7 @@ async function main() {
     app.post(BOT_WEBHOOK_PATH, createBotWebhookHandler(bot, env))
   }
   // Before the cron router: its secret check runs for every /internal path it sees.
-  app.route('/internal', createMetricsRouter(env, panel))
+  app.route('/internal', createMetricsRouter(env, panel, extraMetricsServers))
   app.route('/internal', createInternalCronRouter(env, panel, bot))
 
   const spa = serveSpa(getStaticRoot())

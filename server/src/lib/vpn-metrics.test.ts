@@ -138,6 +138,67 @@ describe('buildVpnMetrics', () => {
     expect(sample(dup, 'vpn_panel_users_up', '')).toBe('vpn_panel_users_up 0')
   })
 
+  test('named and extra servers label their peer and snapshot series, not user series', () => {
+    const multi = buildVpnMetrics({
+      users,
+      usersUp: true,
+      serverName: 'arbat',
+      peers: [peer('v3new:mac:wg3 (Mac)', 'awg3', {download: 1})],
+      protocolStates: {awg3: 'up'},
+      extraServers: [
+        {
+          name: 'yandex',
+          peers: [peer('v3new:mac:wg3 (Mac)', 'awg3', {client_id: 'old', download: 2, last_handshake_at: recent})],
+          protocolStates: {awg3: 'up', awg2: 'down'},
+          refreshSeconds: 2,
+          snapshotAgeSeconds: 3,
+        },
+      ],
+      activity: [],
+      refreshSeconds: 1,
+      snapshotAgeSeconds: 1,
+      now: NOW,
+    })
+    const tail = 'user="v3new",protocol="awg3",device="mac",connection="Mac"'
+    expect(multi).toContain(
+      `vpn_connection_download_bytes_total{server="arbat",${tail},client_id="c-v3new:mac:wg3 (Mac)"} 1`,
+    )
+    expect(multi).toContain(`vpn_connection_download_bytes_total{server="yandex",${tail},client_id="old"} 2`)
+    expect(multi).toContain(`vpn_connection_online{server="yandex",${tail},client_id="old"} 1`)
+    expect(sample(multi, 'vpn_panel_protocol_up', '{server="yandex",protocol="awg2"}')).toBe(
+      'vpn_panel_protocol_up{server="yandex",protocol="awg2"} 0',
+    )
+    expect(sample(multi, 'vpn_connections', '{server="arbat",protocol="awg3"}')).toBe(
+      'vpn_connections{server="arbat",protocol="awg3"} 1',
+    )
+    expect(sample(multi, 'vpn_peers_snapshot_age_seconds', '{server="yandex"}')).toBe(
+      'vpn_peers_snapshot_age_seconds{server="yandex"} 3',
+    )
+    expect(multi.match(/^# TYPE vpn_connection_online gauge$/gm)).toHaveLength(1)
+    expect(sample(multi, 'vpn_user_enabled', '{user="v3new"}')).toBe('vpn_user_enabled{user="v3new"} 1')
+  })
+
+  test('a named server without extras only adds the server label', () => {
+    const named = buildVpnMetrics({
+      users: [],
+      usersUp: true,
+      serverName: 'arbat',
+      peers: [],
+      protocolStates: {awg3: 'up'},
+      activity: [],
+      refreshSeconds: 0,
+      snapshotAgeSeconds: 0,
+      now: NOW,
+    })
+    expect(sample(named, 'vpn_connections', '{server="arbat",protocol="awg3"}')).toBe(
+      'vpn_connections{server="arbat",protocol="awg3"} 0',
+    )
+    expect(sample(named, 'vpn_peers_snapshot_age_seconds', '{server="arbat"}')).toBe(
+      'vpn_peers_snapshot_age_seconds{server="arbat"} 0',
+    )
+    expect(named).not.toContain('vpn_connections{protocol=')
+  })
+
   test('mini app activity', () => {
     const at = Math.round(NOW / 1000)
     expect(sample(text, 'miniapp_last_open_timestamp_seconds', '{user="v3new"}')).toBe(
